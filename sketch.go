@@ -141,6 +141,10 @@ type Plus [2]Exp
 type And [2]Exp
 type Or [2]Exp
 type Var string
+type Neg [2]Exp
+type Equ [2]Exp
+type Less [2]Exp
+type Grp [2]Exp
 
 /////////////////////////
 // Stmt instances
@@ -281,6 +285,45 @@ func (e Or) pretty() string {
 	return x
 }
 
+func (e Neg) pretty() string {
+	var x string
+	x = "!"
+	x += e[0].pretty()
+
+	return x
+}
+
+func (e Equ) pretty() string {
+	var x string
+	x = "("
+	x += e[0].pretty()
+	x += "=="
+	x += e[1].pretty()
+	x += ")"
+
+	return x
+}
+
+func (e Less) pretty() string {
+	var x string
+	x = "("
+	x += e[0].pretty()
+	x += "<"
+	x += e[1].pretty()
+	x += ")"
+
+	return x
+}
+
+func (e Grp) pretty() string {
+	var x string
+	x = "("
+	x += e[0].pretty()
+	x += ")"
+
+	return x
+}
+
 // Evaluator
 
 func (x Bool) eval(s ValState) Val {
@@ -333,6 +376,41 @@ func (e Or) eval(s ValState) Val {
 	return mkUndefined()
 }
 
+func (e Neg) eval(s ValState) Val {
+	b1 := e[0].eval(s)
+	switch {
+	case b1.flag == ValueBool:
+		return mkBool(!b1.valB)
+	}
+	return mkUndefined()
+}
+
+func (e Equ) eval(s ValState) Val {
+	b1 := e[0].eval(s)
+	b2 := e[1].eval(s)
+	switch {
+	case b1.flag == ValueBool && b2.flag == ValueBool:
+		return mkBool(b1.valB == b2.valB)
+	case b1.flag == ValueInt && b2.flag == ValueInt:
+		return mkBool(b1.valI == b2.valI)
+	}
+	return mkUndefined()
+}
+
+func (e Less) eval(s ValState) Val {
+	b1 := e[0].eval(s)
+	b2 := e[1].eval(s)
+	switch {
+	case b1.flag == ValueInt && b2.flag == ValueInt:
+		return mkBool(b1.valI < b2.valI)
+	}
+	return mkUndefined()
+}
+
+/*
+type Grp [2]Exp eval?
+*/
+
 // Type inferencer/checker
 
 func (x Var) infer(t TyState) Type {
@@ -382,6 +460,24 @@ func (e And) infer(t TyState) Type {
 }
 
 func (e Or) infer(t TyState) Type {
+	t1 := e[0].infer(t)
+	t2 := e[1].infer(t)
+	if t1 == TyBool && t2 == TyBool {
+		return TyBool
+	}
+	return TyIllTyped
+}
+
+func (e Less) infer(t TyState) Type {
+	t1 := e[0].infer(t)
+	t2 := e[1].infer(t)
+	if t1 == TyInt && t2 == TyInt {
+		return TyBool
+	}
+	return TyIllTyped
+}
+
+func (e Less) infer(t TyState) Type {
 	t1 := e[0].infer(t)
 	t2 := e[1].infer(t)
 	if t1 == TyBool && t2 == TyBool {
