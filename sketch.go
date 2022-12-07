@@ -141,10 +141,10 @@ type Plus [2]Exp
 type And [2]Exp
 type Or [2]Exp
 type Var string
-type Neg [2]Exp
+type Neg [1]Exp
 type Equ [2]Exp
 type Less [2]Exp
-type Grp [2]Exp
+type Grp [1]Exp
 
 /////////////////////////
 // Stmt instances
@@ -357,6 +357,7 @@ func (e And) eval(s ValState) Val {
 	b2 := e[1].eval(s)
 	switch {
 	case b1.flag == ValueBool && b1.valB == false:
+		//false && 0 kommt hier rein soll das sein?
 		return mkBool(false)
 	case b1.flag == ValueBool && b2.flag == ValueBool:
 		return mkBool(b1.valB && b2.valB)
@@ -410,6 +411,16 @@ func (e Less) eval(s ValState) Val {
 /*
 type Grp [2]Exp eval?
 */
+func (e Grp) eval(s ValState) Val {
+	b1 := e[0].eval(s)
+	switch {
+	case b1.flag == ValueBool:
+		return mkBool(b1.valB)
+	case b1.flag == ValueInt:
+		return mkInt(b1.valI)
+	}
+	return mkUndefined()
+}
 
 // Type inferencer/checker
 
@@ -477,9 +488,31 @@ func (e Less) infer(t TyState) Type {
 	return TyIllTyped
 }
 
-func (e Less) infer(t TyState) Type {
+func (e Neg) infer(t TyState) Type {
+	t1 := e[0].infer(t)
+	if t1 == TyBool {
+		return TyBool
+	}
+	return TyIllTyped
+}
+
+func (e Grp) infer(t TyState) Type {
+	t1 := e[0].infer(t)
+	if t1 == TyBool {
+		return TyBool
+	}
+	if t1 == TyInt {
+		return TyInt
+	}
+	return TyIllTyped
+}
+
+func (e Equ) infer(t TyState) Type {
 	t1 := e[0].infer(t)
 	t2 := e[1].infer(t)
+	if t1 == TyInt && t2 == TyInt {
+		return TyBool
+	}
 	if t1 == TyBool && t2 == TyBool {
 		return TyBool
 	}
@@ -516,6 +549,22 @@ func and(x, y Exp) Exp {
 
 func or(x, y Exp) Exp {
 	return (Or)([2]Exp{x, y})
+}
+
+func neg(x, y Exp) Exp {
+	return (Neg)([1]Exp{x})
+}
+
+func less(x, y Exp) Exp {
+	return (Less)([2]Exp{x, y})
+}
+
+func grp(x Exp) Exp {
+	return (Grp)([1]Exp{x})
+}
+
+func equ(x, y Exp) Exp {
+	return (Equ)([2]Exp{x, y})
 }
 
 // Examples
