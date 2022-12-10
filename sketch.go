@@ -30,6 +30,9 @@ exp ::= 0 | 1 | -1 | ...     -- Integers
      | exp "<" exp           -- Lesser test
      | "(" exp ")"           -- Grouping of expressions
      | vars                  -- Variables
+
+	 x := true
+	 y := (x == false)
 */
 
 // Values
@@ -128,8 +131,8 @@ type IfThenElse struct {
 }
 
 type Assign struct {
-	lhs string
-	rhs Exp
+	variable Var
+	rhs      Exp
 }
 
 type While struct {
@@ -181,7 +184,7 @@ func (print Print) pretty() string {
 }
 
 func (assignment Assign) pretty() string {
-	return assignment.lhs + " =" + assignment.rhs.pretty()
+	return assignment.variable.pretty() + " =" + assignment.rhs.pretty()
 }
 
 // eval
@@ -219,12 +222,18 @@ func (decl Decl) eval(s ValState) {
 // Hence, maps are passed by "reference" and the update is visible for the caller as well.
 func (assign Assign) eval(s ValState) {
 	v := assign.rhs.eval(s)
-	x := (string)(assign.lhs)
-	_, ok := s[x]
-	if ok {
-		s[x] = v
+	val := assign.variable.eval(s)
+	if val.flag == Undefined {
+		fmt.Printf("ERROR: cannot assign %v to %v because it isnt declared yet.", v, assign.variable.pretty())
+		return
+	} else if v.flag == Undefined {
+		fmt.Printf("ERROR: cannot eval expression for variable: %v", assign.variable.pretty())
+		return
+	} else if v.flag != val.flag {
+		fmt.Printf("ERROR: cannot assign value because different types")
+		return
 	} else {
-		fmt.Printf("ERROR: cannot assign %v to %v because it isnt declared yet.", v, x)
+		s[assign.variable.pretty()] = v
 	}
 }
 
@@ -269,7 +278,7 @@ func (decl Decl) check(t TyState) bool {
 }
 
 func (a Assign) check(t TyState) bool {
-	x := (string)(a.lhs)
+	x := a.variable.pretty()
 	return t[x] == a.rhs.infer(t)
 }
 
@@ -288,7 +297,6 @@ func (x Bool) pretty() string {
 	} else {
 		return "false"
 	}
-
 }
 
 func (x Num) pretty() string {
@@ -399,6 +407,19 @@ func (e Mult) eval(s ValState) Val {
 		return mkInt(n1.valI * n2.valI)
 	}
 	return mkUndefined()
+}
+
+func (varName Var) eval(s ValState) Val {
+	value, ok := s[varName.pretty()]
+	if ok {
+		if value.flag == ValueInt {
+			return mkInt(value.valI)
+		} else {
+			return mkBool(value.valB)
+		}
+	} else {
+		return mkUndefined()
+	}
 }
 
 func (e Plus) eval(s ValState) Val {
@@ -621,8 +642,20 @@ func grp(x Exp) Exp {
 	return (Grp)([1]Exp{x})
 }
 
-func equ(x, y Exp) Exp {
+func equ(x, y Exp) Equ {
 	return (Equ)([2]Exp{x, y})
+}
+
+func seq(x, y Stmt) Stmt {
+	return (Seq)([2]Stmt{x, y})
+}
+
+func decl(lhs string, exp Exp) Stmt {
+	return (Decl{lhs, exp})
+}
+
+func variable(variableName string) Exp {
+	return (Var(variableName))
 }
 
 // Examples
@@ -667,14 +700,21 @@ func ex6() {
 	run(ast)
 }
 
+func ex7() {
+
+	ast := seq(decl("x", number(1)), plus(number(1), variable("x")))
+	run(ast)
+}
+
 func main() {
 
 	fmt.Printf("\n")
-
-	ex1()
-	ex2()
-	ex3()
-	ex4()
-	ex5()
-	ex6()
+	/*
+		ex1()
+		ex2()
+		ex3()
+		ex4()
+		ex5()
+	*/
+	ex7()
 }
