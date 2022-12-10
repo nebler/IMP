@@ -132,6 +132,15 @@ type Assign struct {
 	rhs Exp
 }
 
+type While struct {
+	cond Exp
+	stmt Stmt
+}
+
+type Print struct {
+	printExp Exp
+}
+
 // Expression cases (incomplete)
 
 type Bool bool
@@ -157,6 +166,22 @@ func (stmt Seq) pretty() string {
 
 func (decl Decl) pretty() string {
 	return decl.lhs + " := " + decl.rhs.pretty()
+}
+
+func (ifThenElse IfThenElse) pretty() string {
+	return "if " + ifThenElse.cond.pretty() + ifThenElse.thenStmt.pretty() + "else " + ifThenElse.thenStmt.pretty()
+}
+
+func (while While) pretty() string {
+	return "while " + while.cond.pretty() + while.stmt.pretty()
+}
+
+func (print Print) pretty() string {
+	return "print " + print.printExp.pretty()
+}
+
+func (assignment Assign) pretty() string {
+	return assignment.lhs + " =" + assignment.rhs.pretty()
 }
 
 // eval
@@ -188,6 +213,39 @@ func (decl Decl) eval(s ValState) {
 	v := decl.rhs.eval(s)
 	x := (string)(decl.lhs)
 	s[x] = v
+}
+
+// Maps are represented via points.
+// Hence, maps are passed by "reference" and the update is visible for the caller as well.
+func (assign Assign) eval(s ValState) {
+	v := assign.rhs.eval(s)
+	x := (string)(assign.lhs)
+	_, ok := s[x]
+	if ok {
+		s[x] = v
+	} else {
+		fmt.Printf("ERROR: cannot assign %v to %v because it isnt declared yet.", v, x)
+	}
+}
+
+func (while While) eval(s ValState) {
+	cond := while.cond.eval(s)
+	if cond.flag == ValueBool {
+		for cond.valB {
+			while.stmt.eval(s)
+		}
+	} else {
+		fmt.Printf("ERROR: Condition isnt boolean cannot eval while-loop")
+	}
+}
+
+func (print Print) eval(s ValState) {
+	isBool := print.printExp.eval(s).flag == ValueBool
+	if isBool {
+		fmt.Printf("%v", print.printExp.eval(s).valB)
+	} else {
+		fmt.Printf("%v", print.printExp.eval(s).valI)
+	}
 }
 
 // type check
@@ -594,6 +652,21 @@ func ex3() {
 	run(ast)
 }
 
+func ex4() {
+	ast := less(boolean(false), number(0))
+	run(ast)
+}
+
+func ex5() {
+	ast := less(number(0), number(1))
+	run(ast)
+}
+
+func ex6() {
+	ast := less(number(1), number(0))
+	run(ast)
+}
+
 func main() {
 
 	fmt.Printf("\n")
@@ -601,4 +674,7 @@ func main() {
 	ex1()
 	ex2()
 	ex3()
+	ex4()
+	ex5()
+	ex6()
 }
