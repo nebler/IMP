@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"os"
 )
 
 func run(e Exp) {
@@ -65,14 +66,10 @@ func ex8() {
 }
 
 func main() {
-
-	fmt.Printf("\n")
-	/*
-		ex1()
-		ex2()
-		ex3()
-		ex4()
-		ex5()
-	*/
-	ex7()
+	argsWithProg := os.Args
+	argsWithoutProg := os.Args[1:]
+	arg := os.Args[3]
+	fmt.Println(argsWithProg)
+	fmt.Println(argsWithoutProg)
+	fmt.Println(arg)
 }
