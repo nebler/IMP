@@ -59,3 +59,7 @@ func decl(lhs string, exp Exp) Stmt {
 func variable(variableName string) Exp {
 	return (Var(variableName))
 }
+
+func errorStmt(errorMessage string) Stmt {
+	return (ErorrStatement(errorMessage))
+}

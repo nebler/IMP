@@ -130,3 +130,16 @@ func (e Grp) pretty() string {
 
 	return x
 }
+
+func (block Block) pretty() string {
+	var x string
+	x = "{"
+	x += block.pretty()
+	x += "}"
+
+	return x
+}
+
+func (errorStmt ErorrStatement) pretty() string {
+	return string(errorStmt)
+}

@@ -1,5 +1,9 @@
 package main
 
+func (stmt ErorrStatement) check(t TyState) bool {
+	return false
+}
+
 func (stmt Seq) check(t TyState) bool {
 	if !stmt[0].check(t) {
 		return false

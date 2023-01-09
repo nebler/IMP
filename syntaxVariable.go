@@ -112,7 +112,7 @@ type Stmt interface {
 	check(t TyState) bool
 }
 
-// Statement cases (incomplete)
+// Statement cases
 
 type Seq [2]Stmt
 type Decl struct {
@@ -139,7 +139,13 @@ type Print struct {
 	printExp Exp
 }
 
-// Expression cases (incomplete)
+type Block struct {
+	stmt Stmt
+}
+
+type ErorrStatement string
+
+// Expression cases
 
 type Bool bool
 type Num int

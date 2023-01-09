@@ -10,13 +10,14 @@ func (stmt Seq) eval(s ValState) {
 func (ite IfThenElse) eval(s ValState) {
 	v := ite.cond.eval(s)
 	if v.flag == ValueBool {
+		s2 := s
 		switch {
 		case v.valB:
-			ite.thenStmt.eval(s)
+			ite.thenStmt.eval(s2)
 		case !v.valB:
 			ite.elseStmt.eval(s)
 		}
-
+		update(s, s2)
 	} else {
 		fmt.Printf("if-then-else eval fail")
 	}
@@ -50,11 +51,22 @@ func (assign Assign) eval(s ValState) {
 	}
 }
 
+func update(s1 ValState, s2 ValState) {
+	for k := range s2 {
+		val, ok := s1[k]
+		if ok {
+			s1[k] = val
+		}
+	}
+}
+
 func (while While) eval(s ValState) {
 	cond := while.cond.eval(s)
 	if cond.flag == ValueBool {
+		s2 := s
 		for cond.valB {
-			while.stmt.eval(s)
+			while.stmt.eval(s2)
+			update(s, s2)
 		}
 	} else {
 		fmt.Printf("ERROR: Condition isnt boolean cannot eval while-loop")
@@ -177,4 +189,8 @@ func (e Grp) eval(s ValState) Val {
 		return mkInt(b1.valI)
 	}
 	return mkUndefined()
+}
+
+func (errorStmt ErorrStatement) eval(s ValState) {
+	print(errorStmt)
 }
