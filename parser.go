@@ -113,7 +113,7 @@ func scan(s string) (string, int) {
 			return s[1:len(s)], CLOSE_STMT
 		case s[0:2] == "if":
 			return s[1:len(s)], IF
-		case s[0] == ";":
+		case s[0] == ';':
 			return s[1:len(s)], SEQ
 		case s[0] == '<':
 			return s[1:len(s)], LESSER
@@ -129,16 +129,25 @@ func scan(s string) (string, int) {
 			return s[2:len(s)], TRUE
 		case s[0:5] == "false":
 			return s[5:len(s)], FALSE
-		case unicode.IsLower(s[0]):
-
+		case IsLower(s[0:0]):
 			s = s[1:len(s)]
 			//logic missing here!!!
+			//when lower case this means that its a variable
 		case s[0] == ' ':
 			s = s[1:len(s)]
 		default: // simply skip everything else
 			s = s[1:len(s)]
 		}
 	}
+}
+
+func IsLower(s string) bool {
+	for _, r := range s {
+		if !unicode.IsLower(r) && unicode.IsLetter(r) {
+			return false
+		}
+	}
+	return true
 }
 
 type State struct {
@@ -152,8 +161,26 @@ func next(s *State) {
 	s.tok = tok
 }
 
+/*
+exp ::= 0 | 1 | -1 | ...     -- Integers
+
+	     | "true" | "false"      -- Booleans
+	     | exp "+" exp           -- Addition
+	     | exp "*" exp           -- Multiplication
+	     | exp "||" exp          -- Disjunction
+	     | exp "&&" exp          -- Conjunction
+	     | "!" exp               -- Negation
+	     | exp "==" exp          -- Equality test
+	     | exp "<" exp           -- Lesser test
+	     | "(" exp ")"           -- Grouping of expressions
+	     | vars                  -- Variables
+
+		 x := true
+		 y := (x == false)
+*/
 func parseExp(s *State) (bool, Exp) {
 
+	return 1, 
 }
 
 /*
@@ -169,7 +196,6 @@ func parseStmt(s *State) (bool, Stmt) {
 	stmt := errorStmt("ERROR")
 	valid := false
 	switch s.tok {
-
 	default:
 		return false, errorStmt("ERROR")
 	}
