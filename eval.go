@@ -194,3 +194,8 @@ func (e Grp) eval(s ValState) Val {
 func (errorStmt ErorrStatement) eval(s ValState) {
 	print(errorStmt)
 }
+
+func (errorExp ErrorExp) eval(s ValState) Val {
+	print(errorExp)
+	return mkUndefined()
+}
