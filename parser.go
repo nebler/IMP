@@ -70,6 +70,8 @@ const (
 	NEG        = 27
 	SEQ        = 28
 	VARS       = 29
+	ASSIGN     = 30
+	DECL       = 31
 )
 
 func scan(s string) (string, int) {
@@ -118,6 +120,10 @@ func scan(s string) (string, int) {
 			return s[1:], IF
 		case s[0] == ';':
 			return s[1:], SEQ
+		case s[0] == '=':
+			return s[1:], ASSIGN
+		case s[0:1] == ":=":
+			return s[2:], DECL
 		case s[0] == '<':
 			return s[1:len(s)], LESSER
 		case s[0] == '!':
@@ -209,7 +215,7 @@ func parsePrint(s *State) (bool, Stmt) {
 func parseIf(s *State) (bool, Stmt) {
 	valid, exp := parseExp(s)
 	if !valid {
-		return false, errorStmt("not valid expression")
+		return false, errorStmt("invalid expression for if:" + exp.pretty())
 	}
 	next(s)
 	validIfStmt, ifStmt := parseBlock(s)
@@ -224,11 +230,74 @@ func parseIf(s *State) (bool, Stmt) {
 	if !validElse {
 		return false, errorStmt("invalid statement inside if block")
 	}
-	returntrue, IfThenElse{exp, ifStmt, elelseStmt}
+	return true, IfThenElse{exp, ifStmt, elseStmt}
+}
+
+/*
+"while" exp block                 -- While
+*/
+func parseWhile(s *State) (bool, Stmt) {
+	valid, exp := parseExp(s)
+	if !valid {
+		return false, errorStmt("invalid expression for while:" + exp.pretty())
+	}
+	next(s)
+	validWhileStmt, whileStmt := parseBlock(s)
+	if !validWhileStmt {
+		return false, errorStmt("invalid statement inside while block")
+	}
+	return true, While{exp, whileStmt}
+}
+
+func parseVars(varName string) (bool, Exp) {
+	// parsing if only letters and numbers
+	//myVar! => error
+	return true, Var(varName)
+}
+
+func parseAssign(varName string, s *State) (bool, Stmt) {
+	validVars, expVars := parseVars(varName)
+	if !validVars {
+		return false, errorStmt("error when assigning variable: " + varName + "error is: " + expVars.pretty())
+	}
 
 }
 
-func parseWhile(s *State) (bool, Stmt) {
+func parseDecl(varName string, s *State) (bool, Stmt) {
+	valid, exp := parseExp(s)
+	if !valid {
+		return false, errorStmt("error when decaring variable: " + varName + " error is: " + exp.pretty())
+	}
+
+	return true, Decl{varName, exp}
+}
+
+/*
+STATEMENTS
+	|  vars ":=" exp                     -- Variable declaration
+	|  vars "=" exp                      -- Variable assignment
+*/
+
+func parseDeclOrAssign(s *State) (bool, Stmt) {
+	varName := ""
+	index := 0
+	for i, c := range *s.s {
+		if c == ' ' {
+			index = i - 1
+			break
+		}
+		varName = varName + string(c)
+	}
+	*s.s = (*s.s)[index:]
+	next(s)
+	switch s.tok {
+	case ASSIGN:
+		next(s)
+		parseAssign(varName, s)
+	case DECL:
+		next(s)
+		parseDecl(varName, s)
+	}
 	return false, errorStmt("error")
 }
 
@@ -245,7 +314,6 @@ func parseStmt(s *State) (bool, Stmt) {
 	//statement ; statement
 	stmt := errorStmt("ERROR")
 	valid := false
-
 	switch s.tok {
 	case PRINT:
 		next(s)
@@ -256,6 +324,8 @@ func parseStmt(s *State) (bool, Stmt) {
 	case WHILE:
 		next(s)
 		valid, stmt = parseWhile(s)
+	case VARS:
+		valid, stmt = parseDeclOrAssign(s)
 	default:
 		return false, errorStmt("ERROR")
 	}

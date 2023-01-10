@@ -15,6 +15,22 @@ func (stmt Seq) check(t TyState) bool {
 	return stmt[1].check(t)
 }
 
+func (ifThenElse IfThenElse) check(t TyState) bool {
+	ty := ifThenElse.cond.infer(t)
+	if ty == TyIllTyped {
+		return false
+	}
+	return ifThenElse.thenStmt.check(t) && ifThenElse.elseStmt.check(t)
+}
+
+func (while While) check(t TyState) bool {
+	ty := while.cond.infer(t)
+	if ty == TyIllTyped {
+		return false
+	}
+	return while.stmt.check(t)
+}
+
 func (print Print) check(t TyState) bool {
 	ty := print.printExp.infer(t)
 	if ty == TyIllTyped {
