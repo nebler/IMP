@@ -63,3 +63,7 @@ func variable(variableName string) Exp {
 func errorStmt(errorMessage string) Stmt {
 	return (ErorrStatement(errorMessage))
 }
+
+func errorExp(errorMessage string) Exp {
+	return (ErrorExp(errorMessage))
+}

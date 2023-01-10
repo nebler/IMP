@@ -143,3 +143,7 @@ func (block Block) pretty() string {
 func (errorStmt ErorrStatement) pretty() string {
 	return string(errorStmt)
 }
+
+func (errorExp ErrorExp) pretty() string {
+	return string(errorExp)
+}

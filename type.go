@@ -4,11 +4,23 @@ func (stmt ErorrStatement) check(t TyState) bool {
 	return false
 }
 
+func (exp ErrorExp) check(t TyState) bool {
+	return false
+}
+
 func (stmt Seq) check(t TyState) bool {
 	if !stmt[0].check(t) {
 		return false
 	}
 	return stmt[1].check(t)
+}
+
+func (print Print) check(t TyState) bool {
+	ty := print.printExp.infer(t)
+	if ty == TyIllTyped {
+		return false
+	}
+	return true
 }
 
 func (decl Decl) check(t TyState) bool {
@@ -40,6 +52,10 @@ func (x Var) infer(t TyState) Type {
 
 func (x Bool) infer(t TyState) Type {
 	return TyBool
+}
+
+func (e ErrorExp) infer(t TyState) Type {
+	return TyIllTyped
 }
 
 func (x Num) infer(t TyState) Type {

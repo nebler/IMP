@@ -144,6 +144,7 @@ type Block struct {
 }
 
 type ErorrStatement string
+type ErrorExp string
 
 // Expression cases
 

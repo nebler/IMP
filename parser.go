@@ -100,6 +100,8 @@ func scan(s string) (string, int) {
 		case s[0] == '+':
 			return s[1:len(s)], PLUS
 		case s[0] == '-':
+			// 1 - 1
+			// x := -1
 			return s[1:len(s)], MINUS
 		case s[0] == '*':
 			return s[1:len(s)], MULT
@@ -108,37 +110,48 @@ func scan(s string) (string, int) {
 		case s[0] == ')':
 			return s[1:len(s)], CLOSE_GRP
 		case s[0] == '{':
-			return s[1:len(s)], OPEN_STMT
+			return s[1:], OPEN_STMT
 		case s[0] == '}':
-			return s[1:len(s)], CLOSE_STMT
-		case s[0:2] == "if":
-			return s[1:len(s)], IF
+			return s[1:], CLOSE_STMT
+		case s[0:1] == "if" && !IsLetter(s[2:2]):
+			// if boolean then exp
+			return s[1:], IF
 		case s[0] == ';':
-			return s[1:len(s)], SEQ
+			return s[1:], SEQ
 		case s[0] == '<':
 			return s[1:len(s)], LESSER
-		case s[0:4] == "while":
+		case s[0] == '!':
+			return s[1:len(s)], NEG
+		case s[0:3] == "while" && !IsLetter(s[4:4]):
 			return s[4:len(s)], WHILE
-		case s[0:2] == "&&":
+		case s[0:1] == "&&":
 			return s[2:len(s)], AND
-		case s[0:2] == "||":
+		case s[0:1] == "||":
 			return s[2:len(s)], OR
-		case s[0:2] == "==":
-			return s[2:len(s)], OR
-		case s[0:4] == "true":
+		case s[0:1] == "==":
+			return s[2:len(s)], EQU
+		case s[0:3] == "true" && !IsLetter(s[4:4]):
 			return s[2:len(s)], TRUE
-		case s[0:5] == "false":
+		case s[0:4] == "false" && !IsLetter(s[5:5]):
 			return s[5:len(s)], FALSE
 		case IsLower(s[0:0]):
-			s = s[1:len(s)]
-			//logic missing here!!!
-			//when lower case this means that its a variable
+			// falseVar
+			return s[1:len(s)], VARS
 		case s[0] == ' ':
 			s = s[1:len(s)]
 		default: // simply skip everything else
 			s = s[1:len(s)]
 		}
 	}
+}
+
+func IsLetter(s string) bool {
+	for _, r := range s {
+		if !unicode.IsLetter(r) {
+			return false
+		}
+	}
+	return true
 }
 
 func IsLower(s string) bool {
@@ -179,8 +192,44 @@ exp ::= 0 | 1 | -1 | ...     -- Integers
 		 y := (x == false)
 */
 func parseExp(s *State) (bool, Exp) {
+	return false, errorExp("error")
+}
 
-	return 1, 
+/*
+|  "print" exp                       -- Print
+*/
+func parsePrint(s *State) (bool, Stmt) {
+	valid, exp := parseExp(s)
+	return valid, Print{exp}
+}
+
+/*
+|  "if" exp block "else" block       -- If-then-else
+*/
+func parseIf(s *State) (bool, Stmt) {
+	valid, exp := parseExp(s)
+	if !valid {
+		return false, errorStmt("not valid expression")
+	}
+	next(s)
+	validIfStmt, ifStmt := parseBlock(s)
+	if !validIfStmt {
+		return false, errorStmt("invalid statement inside if block")
+	}
+	next(s)
+	if s.tok != ELSE {
+		return false, errorStmt("else needs to follow after if")
+	}
+	validElse, elseStmt := parseBlock(s)
+	if !validElse {
+		return false, errorStmt("invalid statement inside if block")
+	}
+	returntrue, IfThenElse{exp, ifStmt, elelseStmt}
+
+}
+
+func parseWhile(s *State) (bool, Stmt) {
+	return false, errorStmt("error")
 }
 
 /*
@@ -193,15 +242,27 @@ statement ::=  statement ";" statement           -- Command sequence
 	|  "print" exp                       -- Print
 */
 func parseStmt(s *State) (bool, Stmt) {
+	//statement ; statement
 	stmt := errorStmt("ERROR")
 	valid := false
+
 	switch s.tok {
+	case PRINT:
+		next(s)
+		valid, stmt = parsePrint(s)
+	case IF:
+		next(s)
+		valid, stmt = parseIf(s)
+	case WHILE:
+		next(s)
+		valid, stmt = parseWhile(s)
 	default:
 		return false, errorStmt("ERROR")
 	}
-
+	//; statement
 	if s.tok == SEQ {
 		next(s)
+		//statement
 		valid2, stmt2 := parseStmt(s)
 		stmt = (Seq)([2]Stmt{stmt, stmt2})
 		valid = valid && valid2
@@ -211,12 +272,16 @@ func parseStmt(s *State) (bool, Stmt) {
 
 // block     ::= "{" statement "}"
 func parseBlock(s *State) (bool, Stmt) {
+	//
 	if s.tok != OPEN_STMT {
 		return false, errorStmt("ERROR")
 	}
 	next(s)
 	b, stmt := parseStmt(s)
 	if !b {
+		return false, errorStmt("ERROR")
+	}
+	if s.tok != CLOSE_STMT {
 		return false, errorStmt("ERROR")
 	}
 	return true, stmt
