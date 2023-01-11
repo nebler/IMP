@@ -15,13 +15,14 @@ func (ite IfThenElse) eval(s ValState) {
 		case v.valB:
 			ite.thenStmt.eval(s2)
 		case !v.valB:
-			ite.elseStmt.eval(s)
+			ite.elseStmt.eval(s2)
 		}
+		// TODO: if you declare a new variable it will leak into the global scope
+		// IDEA: attach name to  inside scope so we know when the variable has been declared or not: type ValName [2]string has name of variable and scope it is defined in
 		update(s, s2)
 	} else {
 		fmt.Printf("if-then-else eval fail")
 	}
-
 }
 
 // Maps are represented via points.
@@ -66,8 +67,8 @@ func (while While) eval(s ValState) {
 		s2 := s
 		for cond.valB {
 			while.stmt.eval(s2)
-			update(s, s2)
 		}
+		update(s, s2)
 	} else {
 		fmt.Printf("ERROR: Condition isnt boolean cannot eval while-loop")
 	}
@@ -124,11 +125,7 @@ func (e Plus) eval(s ValState) Val {
 func (e And) eval(s ValState) Val {
 	b1 := e[0].eval(s)
 	b2 := e[1].eval(s)
-	switch {
-	case b1.flag == ValueBool && b1.valB == false:
-		//false && 0 kommt hier rein soll das sein?
-		return mkBool(false)
-	case b1.flag == ValueBool && b2.flag == ValueBool:
+	if b1.flag == ValueBool && b2.flag == ValueBool {
 		return mkBool(b1.valB && b2.valB)
 	}
 	return mkUndefined()
@@ -137,10 +134,7 @@ func (e And) eval(s ValState) Val {
 func (e Or) eval(s ValState) Val {
 	b1 := e[0].eval(s)
 	b2 := e[1].eval(s)
-	switch {
-	case b1.flag == ValueBool && b1.valB == true:
-		return mkBool(true)
-	case b1.flag == ValueBool && b2.flag == ValueBool:
+	if b1.flag == ValueBool && b2.flag == ValueBool {
 		return mkBool(b1.valB || b2.valB)
 	}
 	return mkUndefined()

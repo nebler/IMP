@@ -92,6 +92,8 @@ func showType(t Type) string {
 	return s
 }
 
+type ValName [2]string
+
 // Value State is a mapping from variable names to values
 type ValState map[string]Val
 

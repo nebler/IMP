@@ -260,7 +260,7 @@ func parseAssign(varName string, s *State) (bool, Stmt) {
 	if !validVars {
 		return false, errorStmt("error when assigning variable: " + varName + "error is: " + expVars.pretty())
 	}
-
+	return false, errorStmt("not finished")
 }
 
 func parseDecl(varName string, s *State) (bool, Stmt) {
