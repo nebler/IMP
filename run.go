@@ -91,5 +91,7 @@ func ex12() {
 }
 
 func main() {
-	ex12()
+	input := "{x := 1}"
+	fmt.Println(parse(input).pretty())
+	//runstmt(parse(input))
 }

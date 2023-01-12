@@ -121,15 +121,16 @@ func scan(s string) (string, int) {
 		case s[0] == ';':
 			return s[1:], SEQ
 		case s[0] == '=':
+			print("ASSIGN")
 			return s[1:], ASSIGN
-		case s[0:1] == ":=":
+		case string(s[0:2]) == ":=":
 			return s[2:], DECL
 		case s[0] == '<':
 			return s[1:len(s)], LESSER
 		case s[0] == '!':
 			return s[1:len(s)], NEG
-		case s[0:3] == "while" && !IsLetter(s[4:4]):
-			return s[4:len(s)], WHILE
+		case len(s) > 5 && s[0:4] == "while" && !IsLetter(s[5:5]):
+			return s[5:len(s)], WHILE
 		case s[0:1] == "&&":
 			return s[2:len(s)], AND
 		case s[0:1] == "||":
@@ -137,15 +138,19 @@ func scan(s string) (string, int) {
 		case s[0:1] == "==":
 			return s[2:len(s)], EQU
 		case s[0:3] == "true" && !IsLetter(s[4:4]):
-			return s[2:len(s)], TRUE
+			// true = 1
+			return s[4:len(s)], TRUE
 		case s[0:4] == "false" && !IsLetter(s[5:5]):
 			return s[5:len(s)], FALSE
 		case IsLower(s[0:0]):
 			// falseVar
-			return s[1:len(s)], VARS
+			// x, xy, xyz
+			return s[0:len(s)], VARS
 		case s[0] == ' ':
+			print("WHITESPACE")
 			s = s[1:len(s)]
 		default: // simply skip everything else
+			print("default")
 			s = s[1:len(s)]
 		}
 	}
@@ -268,7 +273,6 @@ func parseDecl(varName string, s *State) (bool, Stmt) {
 	if !valid {
 		return false, errorStmt("error when decaring variable: " + varName + " error is: " + exp.pretty())
 	}
-
 	return true, Decl{varName, exp}
 }
 
@@ -283,22 +287,29 @@ func parseDeclOrAssign(s *State) (bool, Stmt) {
 	index := 0
 	for i, c := range *s.s {
 		if c == ' ' {
-			index = i - 1
+			index = i
 			break
 		}
 		varName = varName + string(c)
 	}
-	*s.s = (*s.s)[index:]
+	println()
+
+	println(*s.s)
+	*s.s = (*s.s)[(index + 1):]
+	println(*s.s)
 	next(s)
+	println(*s.s)
 	switch s.tok {
 	case ASSIGN:
 		next(s)
+		print("DECL")
 		parseAssign(varName, s)
 	case DECL:
+		print("DECL")
 		next(s)
 		parseDecl(varName, s)
 	}
-	return false, errorStmt("error")
+	return false, errorStmt("error when assign")
 }
 
 /*
@@ -325,6 +336,7 @@ func parseStmt(s *State) (bool, Stmt) {
 		next(s)
 		valid, stmt = parseWhile(s)
 	case VARS:
+		print(*s.s)
 		valid, stmt = parseDeclOrAssign(s)
 	default:
 		return false, errorStmt("ERROR")
@@ -342,7 +354,6 @@ func parseStmt(s *State) (bool, Stmt) {
 
 // block     ::= "{" statement "}"
 func parseBlock(s *State) (bool, Stmt) {
-	//
 	if s.tok != OPEN_STMT {
 		return false, errorStmt("ERROR")
 	}
