@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"strconv"
 	"unicode"
 )
 
@@ -105,7 +106,7 @@ func scan(s string) (string, int) {
 		case s[0] == '+':
 			return s[1:len(s)], PLUS
 		case s[0] == '-':
-			return s[1:len(s)], MINUS
+			return s[1:len(s)], NEG
 		case s[0] == '*':
 			return s[1:len(s)], MULT
 		case s[0] == '(':
@@ -182,6 +183,26 @@ func next(s *State) {
 	s.tok = tok
 }
 
+func parseTillNotAnNumberAnymore(s string) (string, int) {
+	println(s)
+	value := ""
+	for i, c := range s {
+		if unicode.IsNumber(c) {
+			value = value + string(c)
+		} else {
+			return value, i
+		}
+	}
+	return "", 0
+}
+
+func parseNumber(s *State) (bool, Num) {
+	numberString, index := parseTillNotAnNumberAnymore(*s.s)
+	number, _ := strconv.Atoi(strconv.Itoa(s.tok) + numberString)
+	*s.s = (*s.s)[(index):]
+	return true, Num(number)
+}
+
 /*
 exp ::= 0 | 1 | -1 | ...     -- Integers
 
@@ -203,25 +224,17 @@ func parseExp(s *State) (bool, Exp) {
 	switch s.tok {
 	case ZERO:
 		return true, Num(0)
-	case ONE:
-		return true, Num(1)
-	case TWO:
-		return true, Num(2)
-	case THREE:
-		return true, Num(3)
-	case FOUR:
-		return true, Num(4)
-	case FIVE:
-		return true, Num(5)
-	case SIX:
-		return true, Num(6)
-	case SEVEN:
-		return true, Num(7)
-	case EIGHT:
-		return true, Num(8)
-	case NINE:
-		return true, Num(9)
+	case NEG:
+		println("NEG")
+		numberString, index := parseTillNotAnNumberAnymore(*s.s)
+		number, _ := strconv.Atoi(numberString)
+		*s.s = (*s.s)[(index):]
+		return true, Num(0 - number)
 	}
+	if s.tok < 10 {
+		parseNumber(s)
+	}
+
 	return false, errorExp("error")
 }
 
