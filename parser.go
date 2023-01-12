@@ -85,7 +85,6 @@ func scan(s string) (string, int) {
 		case s[0] == '0':
 			return s[1:], ZERO
 		case s[0] == '1':
-			println("ONE")
 			return s[1:len(s)], ONE
 		case s[0] == '2':
 			return s[1:len(s)], TWO
@@ -184,7 +183,6 @@ func next(s *State) {
 }
 
 func parseTillNotAnNumberAnymore(s string) (string, int) {
-	println(s)
 	value := ""
 	for i, c := range s {
 		if unicode.IsNumber(c) {
@@ -225,14 +223,13 @@ func parseExp(s *State) (bool, Exp) {
 	case ZERO:
 		return true, Num(0)
 	case NEG:
-		println("NEG")
 		numberString, index := parseTillNotAnNumberAnymore(*s.s)
 		number, _ := strconv.Atoi(numberString)
 		*s.s = (*s.s)[(index):]
 		return true, Num(0 - number)
 	}
 	if s.tok < 10 {
-		parseNumber(s)
+		return parseNumber(s)
 	}
 
 	return false, errorExp("error")
@@ -296,8 +293,13 @@ func parseAssign(varName string, s *State) (bool, Stmt) {
 	validVars, expVars := parseVars(varName)
 	if !validVars {
 		return false, errorStmt("error when assigning variable: " + varName + "error is: " + expVars.pretty())
+	} else {
+		validExp, exp := parseExp(s)
+		if !validExp {
+			return false, errorStmt("error when evaluting: " + exp.pretty())
+		}
+		return validVars, Assign{Var(varName), exp}
 	}
-	return false, errorStmt("not finished")
 }
 
 func parseDecl(varName string, s *State) (bool, Stmt) {
@@ -334,7 +336,7 @@ func parseDeclOrAssign(s *State) (bool, Stmt) {
 		next(s)
 		return parseDecl(varName, s)
 	}
-	return false, errorStmt("error when assign")
+	return false, errorStmt("error when assign or declare")
 }
 
 /*
@@ -365,10 +367,11 @@ func parseStmt(s *State) (bool, Stmt) {
 	default:
 		return false, errorStmt("ERROR")
 	}
+	next(s)
 	//; statement
 	if s.tok == SEQ {
-		next(s)
 		//statement
+		next(s)
 		valid2, stmt2 := parseStmt(s)
 		stmt = (Seq)([2]Stmt{stmt, stmt2})
 		valid = valid && valid2
@@ -383,7 +386,6 @@ func parseBlock(s *State) (bool, Stmt) {
 	}
 	next(s)
 	b, stmt := parseStmt(s)
-	next(s)
 	if !b {
 		return false, errorStmt("failing to evaulute: " + stmt.pretty())
 	}
