@@ -5,7 +5,7 @@ import "strconv"
 // pretty print
 
 func (stmt Seq) pretty() string {
-	return stmt[0].pretty() + "; " + stmt[1].pretty()
+	return stmt[0].pretty() + ";\n " + stmt[1].pretty()
 }
 
 func (decl Decl) pretty() string {
@@ -13,11 +13,11 @@ func (decl Decl) pretty() string {
 }
 
 func (ifThenElse IfThenElse) pretty() string {
-	return "if " + ifThenElse.cond.pretty() + ifThenElse.thenStmt.pretty() + "else " + ifThenElse.thenStmt.pretty()
+	return "if (" + ifThenElse.cond.pretty() + ") { \n " + ifThenElse.thenStmt.pretty() + "\n} else {\n" + ifThenElse.elseStmt.pretty() + " \n}"
 }
 
 func (while While) pretty() string {
-	return "while " + while.cond.pretty() + while.stmt.pretty()
+	return "while (" + while.cond.pretty() + ") { \n" + while.stmt.pretty() + " \n}"
 }
 
 func (print Print) pretty() string {
@@ -25,7 +25,7 @@ func (print Print) pretty() string {
 }
 
 func (assignment Assign) pretty() string {
-	return assignment.variable.pretty() + " =" + assignment.rhs.pretty()
+	return assignment.variable.pretty() + " = " + assignment.rhs.pretty()
 }
 
 func (x Var) pretty() string {

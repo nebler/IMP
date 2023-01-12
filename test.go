@@ -7,6 +7,7 @@ type ValStateTest struct {
 	vals map[ValNameTest]int
 }
 
+/*
 func testDeepCopy() {
 	x := ValNameTest{"x", "global"}
 	y := ValNameTest{"y", "global"}
@@ -37,3 +38,4 @@ func testDeepCopy() {
 	}
 
 }
+*/

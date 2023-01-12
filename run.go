@@ -66,6 +66,30 @@ func ex8() {
 	runstmt(ast)
 }
 
+func ex9() {
+	ast := seq(decl("x", number(1)), printStatement(variable("x")))
+	runstmt(ast)
+}
+
+func ex10() {
+	ast := ifThenElse(boolean(true), printStatement(number(1)), printStatement(number(2)))
+	ast2 := ifThenElse(boolean(false), printStatement(number(1)), printStatement(number(2)))
+	astWhile := seq(decl("x", number(1)), while(less(variable("x"), number(4)), seq(assign(variable("x"), plus(variable("x"), number(1))), printStatement(variable("x")))))
+	runstmt(ast)
+	runstmt(ast2)
+	runstmt(astWhile)
+}
+
+func ex11() {
+	astWhile := seq(decl("x", number(1)), seq(while(less(variable("x"), number(4)), seq(decl("x", plus(variable("x"), number(1))), printStatement(variable("x")))), printStatement(variable("x"))))
+	runstmt(astWhile)
+}
+
+func ex12() {
+	astIf := seq(decl("x", number(1)), seq(ifThenElse(less(variable("x"), number(4)), seq(decl("x", plus(variable("x"), number(1))), printStatement(variable("x"))), seq(decl("x", plus(variable("x"), number(1))), printStatement(variable("x")))), printStatement(variable("x"))))
+	runstmt(astIf)
+}
+
 func main() {
-	ex8()
+	ex12()
 }

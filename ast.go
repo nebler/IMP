@@ -56,8 +56,12 @@ func decl(lhs string, exp Exp) Stmt {
 	return (Decl{lhs, exp})
 }
 
-func variable(variableName string) Exp {
-	return (Var(variableName))
+func variable(variableName string) Var {
+	return Var(variableName)
+}
+
+func assign(variable Var, exp Exp) Stmt {
+	return (Assign{variable, exp})
 }
 
 func errorStmt(errorMessage string) Stmt {
@@ -66,4 +70,16 @@ func errorStmt(errorMessage string) Stmt {
 
 func errorExp(errorMessage string) Exp {
 	return (ErrorExp(errorMessage))
+}
+
+func ifThenElse(exp Exp, ifStmt Stmt, elseStmt Stmt) Stmt {
+	return (IfThenElse{exp, ifStmt, elseStmt})
+}
+
+func while(exp Exp, whileStmt Stmt) Stmt {
+	return While{exp, whileStmt}
+}
+
+func printStatement(exp Exp) Stmt {
+	return Print{exp}
 }

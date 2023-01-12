@@ -1,6 +1,10 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"os"
+	"strings"
+)
 
 func (stmt Seq) eval(s ValState) {
 	stmt[0].eval(s)
@@ -32,7 +36,7 @@ func (ite IfThenElse) eval(s ValState) {
 	*/
 	v := ite.cond.eval(s)
 	if v.flag == ValueBool {
-		s2 := makeNewScope(s, "-if-then-else")
+		s2 := makeNewScope(s, "-ifThenElse")
 		switch {
 		case v.valB:
 			ite.thenStmt.eval(s2)
@@ -66,6 +70,7 @@ func (assign Assign) eval(s ValState) {
 	val := assign.variable.eval(s)
 	if val.flag == Undefined {
 		fmt.Printf("ERROR: cannot assign %v to %v because it isnt declared yet.", v, assign.variable.pretty())
+		os.Exit(3)
 		return
 	} else if v.flag == Undefined {
 		fmt.Printf("ERROR: cannot eval expression for variable: %v", assign.variable.pretty())
@@ -74,7 +79,8 @@ func (assign Assign) eval(s ValState) {
 		fmt.Printf("ERROR: cannot assign value because different types")
 		return
 	} else {
-		s.vals[ValName{assign.variable.pretty(), s.name}] = v
+		scope := findScopeOfVariable(s, assign.variable.pretty())
+		s.vals[ValName{assign.variable.pretty(), scope}] = v
 	}
 }
 
@@ -104,7 +110,6 @@ print y
 func update(s1 ValState, s2 ValState) {
 	for k := range s2.vals {
 		_, ok := s1.vals[k]
-		println(k[0] + k[1])
 		if ok {
 			s1.vals[k] = s2.vals[k]
 		}
@@ -121,7 +126,8 @@ func makeNewScope(s ValState, prefix string) ValState {
 	m := make(map[ValName]Val)
 	s2 := ValState{s.name + prefix, m}
 	for k, v := range s.vals {
-		s.vals[k] = v
+
+		s2.vals[k] = v
 	}
 	return s2
 }
@@ -132,6 +138,7 @@ func (while While) eval(s ValState) {
 		s2 := makeNewScope(s, "-while")
 		for cond.valB {
 			while.stmt.eval(s2)
+			cond = while.cond.eval(s2)
 		}
 		update(s, s2)
 	} else {
@@ -142,9 +149,11 @@ func (while While) eval(s ValState) {
 func (print Print) eval(s ValState) {
 	isBool := print.printExp.eval(s).flag == ValueBool
 	if isBool {
-		fmt.Printf("%v", print.printExp.eval(s).valB)
+		fmt.Println()
+		fmt.Printf("PRINT STATEMENT FROM IMP: %v", print.printExp.eval(s).valB)
 	} else {
-		fmt.Printf("%v", print.printExp.eval(s).valI)
+		fmt.Println()
+		fmt.Printf("PRINT STATEMENT FROM IMP: %v", print.printExp.eval(s).valI)
 	}
 }
 
@@ -165,6 +174,18 @@ func (e Mult) eval(s ValState) Val {
 	return mkUndefined()
 }
 
+func findScopeOfVariable(s ValState, varName string) string {
+	scope := "global"
+	for k, _ := range s.vals {
+		if k[0] == varName {
+			if strings.Count(scope, "-") < strings.Count(k[1], "-") {
+				scope = k[1]
+			}
+		}
+	}
+	return scope
+}
+
 func (varName Var) eval(s ValState) Val {
 	value, ok := s.vals[ValName{varName.pretty(), s.name}]
 	if ok {
@@ -174,7 +195,17 @@ func (varName Var) eval(s ValState) Val {
 			return mkBool(value.valB)
 		}
 	} else {
-		return mkUndefined()
+		scope := findScopeOfVariable(s, varName.pretty())
+		valueScope, okScope := s.vals[ValName{varName.pretty(), scope}]
+		if okScope {
+			if valueScope.flag == ValueInt {
+				return mkInt(valueScope.valI)
+			} else {
+				return mkBool(valueScope.valB)
+			}
+		} else {
+			return mkUndefined()
+		}
 	}
 }
 
