@@ -8,14 +8,37 @@ func (stmt Seq) eval(s ValState) {
 }
 
 func (ite IfThenElse) eval(s ValState) {
+	// x => 1
+	//cond x < 1
+
+	/*
+		x := 1;
+		if x < 1 {
+		x := 2
+		} else {
+		x := 3
+		};
+		print x
+		ausgabe 1
+
+		x := 1;
+		if x < 1 {
+		x := 2
+		} else {
+		x = 3
+		};
+		print x
+		ausgabe 3
+	*/
 	v := ite.cond.eval(s)
 	if v.flag == ValueBool {
-		s2 := s
+		s2 := makeNewScope(s, "-if-then-else")
 		switch {
 		case v.valB:
 			ite.thenStmt.eval(s2)
 		case !v.valB:
 			ite.elseStmt.eval(s2)
+			// x => 3
 		}
 		// TODO: if you declare a new variable it will leak into the global scope
 		// IDEA: attach name to  inside scope so we know when the variable has been declared or not: type ValName [2]string has name of variable and scope it is defined in
@@ -27,10 +50,13 @@ func (ite IfThenElse) eval(s ValState) {
 
 // Maps are represented via points.
 // Hence, maps are passed by "reference" and the update is visible for the caller as well.
+// x := 1 + 1
+// x := 2
+// [x, scopeName] => 2
 func (decl Decl) eval(s ValState) {
 	v := decl.rhs.eval(s)
 	x := (string)(decl.lhs)
-	s[x] = v
+	s.vals[ValName{x, s.name}] = v
 }
 
 // Maps are represented via points.
@@ -48,23 +74,62 @@ func (assign Assign) eval(s ValState) {
 		fmt.Printf("ERROR: cannot assign value because different types")
 		return
 	} else {
-		s[assign.variable.pretty()] = v
+		s.vals[ValName{assign.variable.pretty(), s.name}] = v
 	}
 }
 
+/*
+// s = global
+x := 1;
+// s {[x, global]: 1}
+y := 2
+// s {[x, global]: 1, [y, global]: 2}
+//createNewScopeFrom()
+// s2: gobal-else {[x, global]: 1, [y, global]: 2}
+if x < 1 {
+x := 2
+} else {
+// s2: gobal-else {[x, global]: 1, [y, global]: 2}
+x := 3
+// s2: gobal-else {[x, global-else]: 3, [y, global]: 2}
+x = 5
+x = 6
+y = 1
+// s2: gobal-else {[x, global-else]: 3, [y, global]: 1}
+};
+
+print x
+print y
+*/
 func update(s1 ValState, s2 ValState) {
-	for k := range s2 {
-		val, ok := s1[k]
+	for k := range s2.vals {
+		_, ok := s1.vals[k]
+		println(k[0] + k[1])
 		if ok {
-			s1[k] = val
+			s1.vals[k] = s2.vals[k]
 		}
 	}
+}
+
+/*
+global: if-else-then
+global-if-else-then
+global-if-else-then-if-else-then
+global-if-else-then-if-else-then-while-while
+*/
+func makeNewScope(s ValState, prefix string) ValState {
+	m := make(map[ValName]Val)
+	s2 := ValState{s.name + prefix, m}
+	for k, v := range s.vals {
+		s.vals[k] = v
+	}
+	return s2
 }
 
 func (while While) eval(s ValState) {
 	cond := while.cond.eval(s)
 	if cond.flag == ValueBool {
-		s2 := s
+		s2 := makeNewScope(s, "-while")
 		for cond.valB {
 			while.stmt.eval(s2)
 		}
@@ -101,7 +166,7 @@ func (e Mult) eval(s ValState) Val {
 }
 
 func (varName Var) eval(s ValState) Val {
-	value, ok := s[varName.pretty()]
+	value, ok := s.vals[ValName{varName.pretty(), s.name}]
 	if ok {
 		if value.flag == ValueInt {
 			return mkInt(value.valI)

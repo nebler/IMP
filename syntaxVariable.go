@@ -95,7 +95,10 @@ func showType(t Type) string {
 type ValName [2]string
 
 // Value State is a mapping from variable names to values
-type ValState map[string]Val
+type ValState struct {
+	name string
+	vals map[ValName]Val
+}
 
 // Value State is a mapping from variable names to types
 type TyState map[string]Type

@@ -2,11 +2,11 @@ package main
 
 import (
 	"fmt"
-	"os"
 )
 
 func run(e Exp) {
-	s := make(map[string]Val)
+	m := make(map[ValName]Val)
+	s := ValState{"global", m}
 	t := make(map[string]Type)
 	fmt.Printf("\n ******* ")
 	fmt.Printf("\n %s", e.pretty())
@@ -15,7 +15,8 @@ func run(e Exp) {
 }
 
 func runstmt(stmt Stmt) {
-	s := make(map[string]Val)
+	m := make(map[ValName]Val)
+	s := ValState{"global", m}
 	t := make(map[string]Type)
 	fmt.Printf("\n ******* ")
 	fmt.Printf("\n %s", stmt.pretty())
@@ -66,10 +67,5 @@ func ex8() {
 }
 
 func main() {
-	argsWithProg := os.Args
-	argsWithoutProg := os.Args[1:]
-	arg := os.Args[3]
-	fmt.Println(argsWithProg)
-	fmt.Println(argsWithoutProg)
-	fmt.Println(arg)
+	ex8()
 }

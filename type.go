@@ -52,8 +52,12 @@ func (decl Decl) check(t TyState) bool {
 
 func (a Assign) check(t TyState) bool {
 	x := a.variable.pretty()
-	//TODO: check rein ob variable überhaupt existiert?
-	return t[x] == a.rhs.infer(t)
+	_, ok := t[x]
+	if ok {
+		return t[x] == a.rhs.infer(t)
+	} else {
+		return false
+	}
 }
 
 func (x Var) infer(t TyState) Type {
