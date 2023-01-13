@@ -204,35 +204,49 @@ func parseNumber(s *State) (bool, Num) {
 /*
 exp ::= 0 | 1 | -1 | ...     -- Integers
 
-	     | "true" | "false"      -- Booleans
-	     | exp "+" exp           -- Addition
-	     | exp "*" exp           -- Multiplication
-	     | exp "||" exp          -- Disjunction
-	     | exp "&&" exp          -- Conjunction
-	     | "!" exp               -- Negation
-	     | exp "==" exp          -- Equality test
-	     | exp "<" exp           -- Lesser test
-	     | "(" exp ")"           -- Grouping of expressions
-	     | vars                  -- Variables
-
-		 x := true
-		 y := (x == false)
+	| "true" | "false"      -- Booleans
+	| exp "+" exp           -- Addition
+	| exp "*" exp           -- Multiplication
+	| exp "||" exp          -- Disjunction
+	| exp "&&" exp          -- Conjunction
+	| "!" exp               -- Negation
+	| exp "==" exp          -- Equality test
+	| exp "<" exp           -- Lesser test
+	| "(" exp ")"           -- Grouping of expressions
+	| vars                  -- Variables
 */
 func parseExp(s *State) (bool, Exp) {
+	valid := false
+	exp := errorExp("error")
 	switch s.tok {
 	case ZERO:
-		return true, Num(0)
+		valid = true
+		exp = Num(0)
 	case NEG:
 		numberString, index := parseTillNotAnNumberAnymore(*s.s)
 		number, _ := strconv.Atoi(numberString)
 		*s.s = (*s.s)[(index):]
-		return true, Num(0 - number)
-	}
-	if s.tok < 10 {
-		return parseNumber(s)
-	}
+		valid = true
+		exp = Num(0 - number)
+	case OPEN_GRP:
 
-	return false, errorExp("error")
+	}
+	if s.tok < 10 && s.tok != 0 {
+		valid, exp = parseNumber(s)
+	}
+	next(s)
+	println(*s.s)
+	switch s.tok {
+	case PLUS:
+		println("PLUS")
+		println(*s.s)
+		next(s)
+		valid2, secondExp := parseExp(s)
+		println(*s.s)
+		return valid && valid2, Plus{exp, secondExp}
+	}
+	println(*s.s)
+	return valid, exp
 }
 
 /*
@@ -367,7 +381,6 @@ func parseStmt(s *State) (bool, Stmt) {
 	default:
 		return false, errorStmt("ERROR")
 	}
-	next(s)
 	//; statement
 	if s.tok == SEQ {
 		//statement
