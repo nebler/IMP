@@ -150,10 +150,10 @@ func (print Print) eval(s ValState) {
 	isBool := print.printExp.eval(s).flag == ValueBool
 	if isBool {
 		fmt.Println()
-		fmt.Printf("PRINT STATEMENT FROM IMP: %v", print.printExp.eval(s).valB)
+		fmt.Printf("Output: %v", print.printExp.eval(s).valB)
 	} else {
 		fmt.Println()
-		fmt.Printf("PRINT STATEMENT FROM IMP: %v", print.printExp.eval(s).valI)
+		fmt.Printf("Output: %v", print.printExp.eval(s).valI)
 	}
 }
 
@@ -212,7 +212,6 @@ func (varName Var) eval(s ValState) Val {
 				return mkBool(valueScope.valB)
 			}
 		} else {
-			println("UNDEFINED")
 			return mkUndefined()
 		}
 	}

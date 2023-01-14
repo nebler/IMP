@@ -89,6 +89,8 @@ func scan(s string) (string, int) {
 			return s[4:], TRUE
 		case len(s) > 5 && string(s[0:5]) == "while" && !IsLetter(string(s[5])):
 			return s[5:], WHILE
+		case len(s) > 5 && string(s[0:5]) == "print" && !IsLetter(string(s[5])):
+			return s[5:], PRINT
 		case len(s) > 5 && string(s[0:5]) == "false" && !IsLetter(string(s[5])):
 			return s[5:], FALSE
 		case len(s) > 4 && string(s[0:4]) == "else" && !IsLetter(string(s[4])):
@@ -149,7 +151,6 @@ func scan(s string) (string, int) {
 			// x, xy, xyz
 			return s[0:], VARS
 		default: // simply skip everything else
-			print("default")
 			s = s[1:]
 		}
 	}
@@ -367,7 +368,6 @@ func parseIf(s *State) (bool, Stmt) {
 	}
 	next(s)
 	validElse, elseStmt := parseStmt(s)
-	next(s)
 	if s.tok != CLOSE_STMT {
 		return false, errorStmt("program not ending with }")
 	}
@@ -375,6 +375,7 @@ func parseIf(s *State) (bool, Stmt) {
 		return false, errorStmt("invalid statement inside if block")
 	}
 	ifThen := IfThenElse{exp, ifStmt, elseStmt}
+	next(s)
 	return true, ifThen
 }
 
@@ -387,10 +388,19 @@ func parseWhile(s *State) (bool, Stmt) {
 		return false, errorStmt("invalid expression for while:" + exp.pretty())
 	}
 	next(s)
-	validWhileStmt, whileStmt := parseBlock(s)
+	validWhileStmt, whileStmt := parseStmt(s)
+
 	if !validWhileStmt {
 		return false, errorStmt("invalid statement inside while block")
 	}
+	println("Before" + *s.s)
+	println("after next:" + *s.s)
+	if s.tok != CLOSE_STMT {
+		println("NEXT")
+		return false, errorStmt("program not ending with }")
+	}
+	println("END" + *s.s)
+	next(s)
 	return true, While{exp, whileStmt}
 }
 
@@ -488,7 +498,6 @@ func parseStmt(s *State) (bool, Stmt) {
 	default:
 		return false, errorStmt("ERROR2")
 	}
-	//; statement
 	if s.tok == SEQ {
 		//statement
 		next(s)

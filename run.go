@@ -119,7 +119,9 @@ func working() {
 	input26 := "{x := 0;y:=0; if x < 4 {x = x+1; x = x*10; y:= 100; y = y * 2} else {y:=1}}"
 	input27 := "{x := 0;y:=0; if x < 4 {if x == 0 {x = x+1; x = x*10; y:= 100; y = y * 2} else {y:=100}}} else {y:=1}}"
 	input28 := "{x := 0;y:=0; if 4 < x {x = x+1; x = x*10; y:= 100; y = y * 2} else {y=1}}"
-	runstmt(parse(input26))
+	input29 := "{x :=15; y:=100; print (x+y)}"
+	input30 := "{x :=0; while x<5{x = x+1}; print x}"
+	input31 := "{x :=0; while x<5{x = x+1; print x}}"
 	runstmt(parse(input))
 	runstmt(parse(input2))
 	runstmt(parse(input3))
@@ -148,7 +150,9 @@ func working() {
 	runstmt(parse(input26))
 	runstmt(parse(input27))
 	runstmt(parse(input28))
-
+	runstmt(parse(input29))
+	runstmt(parse(input30))
+	runstmt(parse(input31))
 }
 
 func ex12() {
@@ -159,8 +163,11 @@ func ex12() {
 }
 
 func experiment() {
-	working()
-	//ex12()
+	input := "{x :=0; if x<5 {x = x+2; print x} else {x = 1}}"
+	input2 := "{x :=0; if x<5 {x = x+2} else {x = 1}; print x}"
+	runstmt(parse(input))
+	runstmt(parse(input2))
+	//runstmt(parse(input2))
 }
 
 func main() {
@@ -172,7 +179,7 @@ func main() {
 		input4 := "{x := 1; while x < 4 {x:=x+1; print x}; print x}"
 		input5 := "{x := true; y:= x == false}"
 		input6 := "{x := 1; x = 2}"
-		input7 := "{x := 1;if x < 1 {x = 1} else { x = 3};print x}"
+		input7 := "{x := 1;if x < 1 {x = 1} else { x = 3};print x}" 1
 		input8 := "{x := true; y:=!x}"
 		input9 := "{x := true; y:=x && true}"
 		input10 := "{x := true; y:=x || true}"
