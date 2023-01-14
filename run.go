@@ -97,20 +97,26 @@ func ex12() {
 func working() {
 	//input := "{x := 2; y := 3; z := x + y}"
 	input := "{z :=((-1))}"
-	input2 := "{z :=((-1)+2)}"
+	input2 := "{z :=2+(-1)}"
 	input3 := "{z :=(-1)}"
 	input4 := "{x := -12345678; y := 3}"
 	input5 := "{x := -12345678; x = 1; y := 12; test := -12; zzz := 4; x = 2}"
 	input6 := "{x := -12345678; x = 1}"
 	input7 := "{x := -10; y := x * 2}"
 	input8 := "{x := -1; y := 4; z := x * y}"
-	input9 := "{x := -1; y := 4; z := ((x + 4) * y)}"
+	input9 := "{x := -1; y := 4; z := y*(x + 4)}"
 	input10 := "{z := true }"
 	input11 := "{z := false }"
 	input12 := "{z := false; x := !z }"
 	input13 := "{z := true; x := !z }"
 	input14 := "{z := true; x := z && false }"
 	input15 := "{z := true; x := z || false }"
+	input16 := "{z := 1; x := z == 1 }"
+	input17 := "{z := 1; x := z == 2 }"
+	input18 := "{z := true; x := true && z }"
+	input19 := "{z := true; x := true == z }"
+	input20 := "{z := true; x := z == true }"
+	input21 := "{x :=0; x = x+1}"
 	runstmt(parse(input))
 	runstmt(parse(input2))
 	runstmt(parse(input3))
@@ -126,16 +132,29 @@ func working() {
 	runstmt(parse(input13))
 	runstmt(parse(input14))
 	runstmt(parse(input15))
+	runstmt(parse(input16))
+	runstmt(parse(input17))
+	runstmt(parse(input18))
+	runstmt(parse(input19))
+	runstmt(parse(input20))
+	runstmt(parse(input21))
 }
 
 func experiment() {
-	//input := "{x := 2; y := 3; z := x + y}"
-	input2 := "{z := 1; x := z == 1 }"
+
+	input := "{z :=((-1))}"
+	input2 := "{z :=(-1)+2}"
+	input20 := "{z := 3; z := true && (2 < z)}"
+	input19 := "{z := 3; z := ((2 < z) && true)}"
+	runstmt(parse(input))
 	runstmt(parse(input2))
+	runstmt(parse(input20))
+	runstmt(parse(input19))
+	//input := "{x := 0; if x < 4 {x = x+1} else {y:=1}}"
 }
 
 func main() {
-	working()
+	experiment()
 	/*
 
 		input2 := "{x := -12345678; y := 3}"

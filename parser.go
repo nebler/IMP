@@ -123,11 +123,13 @@ func scan(s string) (string, int) {
 			return s[1:], OPEN_STMT
 		case s[0] == '}':
 			return s[1:], CLOSE_STMT
-		case string(s[0:2]) == "if" && !IsLetter(s[2:2]):
+		case string(s[0:2]) == "if" && !IsLetter(string(s[2])):
 			// if boolean then exp
-			return s[1:], IF
+			return s[2:], IF
 		case s[0] == ';':
 			return s[1:], SEQ
+		case string(s[0:2]) == "==":
+			return s[2:len(s)], EQU
 		case s[0] == '=':
 			return s[1:], ASSIGN
 		case s[0] == '<':
@@ -140,8 +142,6 @@ func scan(s string) (string, int) {
 			return s[2:len(s)], AND
 		case string(s[0:2]) == "||":
 			return s[2:len(s)], OR
-		case string(s[0:2]) == "==":
-			return s[2:len(s)], EQU
 		case IsLower(s[0:0]):
 			// falseVar
 			// x, xy, xyz
@@ -227,6 +227,14 @@ func parseOperation(exp Exp, s *State) (bool, Exp) {
 		next(s)
 		valid2, secondExp := parseExp(s)
 		return valid2, Or{exp, secondExp}
+	case EQU:
+		next(s)
+		valid2, secondExp := parseExp(s)
+		return valid2, Equ{exp, secondExp}
+	case LESSER:
+		next(s)
+		valid2, secondExp := parseExp(s)
+		return valid2, Less{exp, secondExp}
 	}
 	return false, errorExp("error")
 }
@@ -250,16 +258,15 @@ func parseExp(s *State) (bool, Exp) {
 	exp := errorExp("error")
 	switch s.tok {
 	case TRUE:
-		next(s)
-		return true, boolean(true)
+		valid = true
+		exp = boolean(true)
 	case FALSE:
-		next(s)
-		return true, boolean(false)
+		valid = true
+		exp = boolean(false)
 	case NEGATION:
 		next(s)
-		valid, exp := parseExp(s)
+		valid, exp = parseExp(s)
 		exp = Neg{exp}
-		return valid, exp
 	case ZERO:
 		valid = true
 		exp = Num(0)
@@ -274,23 +281,24 @@ func parseExp(s *State) (bool, Exp) {
 		valid, exp = parseVars(varName)
 	case OPEN_GRP:
 		valid, exp = parseGrp(s)
-		if s.tok != CLOSE_GRP {
-			valid, exp := parseOperation(exp, s)
-			if s.tok != CLOSE_GRP {
+		if s.tok != CLOSE_GRP && s.tok != CLOSE_STMT {
+			valid, exp = parseOperation(exp, s)
+			exp = Grp{exp}
+			if s.tok != CLOSE_GRP && s.tok != CLOSE_STMT {
 				return false, errorExp("not closing grouped expression")
-			} else {
-				next(s)
-				return valid, exp
 			}
 		} else {
-			next(s)
-			return valid, Grp{exp}
+			exp = Grp{exp}
 		}
 	}
 	if s.tok < 10 && s.tok != 0 {
 		valid, exp = parseNumber(s)
 	}
-	next(s)
+	if s.tok != CLOSE_STMT {
+		next(s)
+	} else {
+		return valid, exp
+	}
 	switch s.tok {
 	case PLUS:
 		next(s)
@@ -308,6 +316,14 @@ func parseExp(s *State) (bool, Exp) {
 		next(s)
 		valid2, secondExp := parseExp(s)
 		return valid && valid2, Or{exp, secondExp}
+	case EQU:
+		next(s)
+		valid2, secondExp := parseExp(s)
+		return valid && valid2, Equ{exp, secondExp}
+	case LESSER:
+		next(s)
+		valid2, secondExp := parseExp(s)
+		return valid && valid2, Less{exp, secondExp}
 	}
 	return valid, exp
 }
@@ -325,11 +341,13 @@ func parsePrint(s *State) (bool, Stmt) {
 */
 func parseIf(s *State) (bool, Stmt) {
 	valid, exp := parseExp(s)
+	println(exp.pretty())
 	if !valid {
 		return false, errorStmt("invalid expression for if:" + exp.pretty())
 	}
 	next(s)
-	validIfStmt, ifStmt := parseBlock(s)
+	validIfStmt, ifStmt := parseStmt(s)
+	println(ifStmt.pretty())
 	if !validIfStmt {
 		return false, errorStmt("invalid statement inside if block")
 	}
@@ -397,17 +415,18 @@ func parseVarsString(s *State) string {
 	varName := ""
 	index := 0
 	for i, c := range *s.s {
-		if c == ' ' && !unicode.IsLetter(c) {
+		if c == ' ' || !unicode.IsLetter(c) {
 			index = i
 			break
 		}
 	}
-	if index == 0 {
+	if index == 1 {
 		varName = string((*s.s)[0])
+		*s.s = (*s.s)[1:]
 	} else {
 		varName = (*s.s)[0:index]
+		*s.s = (*s.s)[(index + 1):]
 	}
-	*s.s = (*s.s)[(index + 1):]
 	return varName
 }
 
@@ -444,6 +463,7 @@ func parseStmt(s *State) (bool, Stmt) {
 		valid, stmt = parsePrint(s)
 	case IF:
 		next(s)
+		println("IF")
 		valid, stmt = parseIf(s)
 	case WHILE:
 		next(s)
@@ -472,7 +492,6 @@ func parseBlock(s *State) (bool, Stmt) {
 	next(s)
 	b, stmt := parseStmt(s)
 	if !b {
-		println("!B")
 		return false, errorStmt("failing to evaulute: " + stmt.pretty())
 	}
 	if s.tok != CLOSE_STMT {
