@@ -99,12 +99,18 @@ func working() {
 	input4 := "{x := -12345678; y := 3}"
 	input5 := "{x := -12345678; x = 1; y := 12; test := -12; zzz := 4; x = 2}"
 	input6 := "{x := -12345678; x = 1}"
+	input7 := "{x := -10; y := x * 2}"
+	input8 := "{x := -1; y := 4; z := x * y}"
+	input9 := "{x := -1; y := 4; z := ((x + 4) * y)}"
 	runstmt(parse(input))
 	runstmt(parse(input2))
 	runstmt(parse(input3))
 	runstmt(parse(input4))
 	runstmt(parse(input5))
 	runstmt(parse(input6))
+	runstmt(parse(input7))
+	runstmt(parse(input8))
+	runstmt(parse(input9))
 }
 
 func main() {
