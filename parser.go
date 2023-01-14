@@ -91,6 +91,8 @@ func scan(s string) (string, int) {
 			return s[5:], WHILE
 		case len(s) > 5 && string(s[0:5]) == "false" && !IsLetter(string(s[5])):
 			return s[5:], FALSE
+		case len(s) > 4 && string(s[0:4]) == "else" && !IsLetter(string(s[4])):
+			return s[4:], ELSE
 		case s[0] == '1':
 			return s[1:len(s)], ONE
 		case s[0] == '2':
@@ -340,26 +342,49 @@ func parsePrint(s *State) (bool, Stmt) {
 |  "if" exp block "else" block       -- If-then-else
 */
 func parseIf(s *State) (bool, Stmt) {
+	/*
+		{x = x+1} else {y:=1}
+	*/
 	valid, exp := parseExp(s)
-	println(exp.pretty())
+	println("string:" + *s.s)
 	if !valid {
 		return false, errorStmt("invalid expression for if:" + exp.pretty())
 	}
 	next(s)
+	next(s)
+	println("before if:" + *s.s)
 	validIfStmt, ifStmt := parseStmt(s)
-	println(ifStmt.pretty())
 	if !validIfStmt {
+		println("not vlaid statement")
 		return false, errorStmt("invalid statement inside if block")
 	}
+	if s.tok != CLOSE_STMT {
+		println("NO CLOSE")
+		return false, errorStmt("program not ending with }")
+	}
 	next(s)
+	println(*s.s)
 	if s.tok != ELSE {
+		println("NO else")
 		return false, errorStmt("else needs to follow after if")
 	}
-	validElse, elseStmt := parseBlock(s)
+	next(s)
+	next(s)
+	println("else:" + *s.s)
+	validElse, elseStmt := parseStmt(s)
+	println("after:" + *s.s)
+	println(elseStmt.pretty())
+	next(s)
+	if s.tok != CLOSE_STMT {
+		return false, errorStmt("program not ending with }")
+	}
 	if !validElse {
 		return false, errorStmt("invalid statement inside if block")
 	}
-	return true, IfThenElse{exp, ifStmt, elseStmt}
+	ifThen := IfThenElse{exp, ifStmt, elseStmt}
+	println()
+	println(ifThen.pretty())
+	return true, ifThen
 }
 
 /*
@@ -455,7 +480,7 @@ statement ::=  statement ";" statement           -- Command sequence
 */
 func parseStmt(s *State) (bool, Stmt) {
 	//statement ; statement
-	stmt := errorStmt("ERROR")
+	stmt := errorStmt("ERROR1")
 	valid := false
 	switch s.tok {
 	case PRINT:
@@ -471,7 +496,7 @@ func parseStmt(s *State) (bool, Stmt) {
 	case VARS:
 		valid, stmt = parseDeclOrAssign(s)
 	default:
-		return false, errorStmt("ERROR")
+		return false, errorStmt("ERROR2")
 	}
 	//; statement
 	if s.tok == SEQ {

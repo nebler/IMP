@@ -89,11 +89,6 @@ func ex11() {
 	runstmt(astWhile)
 }
 
-func ex12() {
-	astIf := seq(decl("x", number(1)), seq(ifThenElse(less(variable("x"), number(4)), seq(decl("x", plus(variable("x"), number(1))), printStatement(variable("x"))), seq(decl("x", plus(variable("x"), number(1))), printStatement(variable("x")))), printStatement(variable("x"))))
-	runstmt(astIf)
-}
-
 func working() {
 	//input := "{x := 2; y := 3; z := x + y}"
 	input := "{z :=((-1))}"
@@ -117,6 +112,11 @@ func working() {
 	input19 := "{z := true; x := true == z }"
 	input20 := "{z := true; x := z == true }"
 	input21 := "{x :=0; x = x+1}"
+	input22 := "{z :=((-1))}"
+	input23 := "{z :=(-1)+2}"
+	input24 := "{z := 3; z := true && (2 < z)}"
+	input25 := "{z := 3; z := ((2 < z) && true)}"
+	input26 := "{x := 0;y:=0; if x < 4 {x = x+1; x = x*10; y:= 100; y = y * 2} else {y:=1}}"
 	runstmt(parse(input))
 	runstmt(parse(input2))
 	runstmt(parse(input3))
@@ -138,19 +138,24 @@ func working() {
 	runstmt(parse(input19))
 	runstmt(parse(input20))
 	runstmt(parse(input21))
+	runstmt(parse(input22))
+	runstmt(parse(input23))
+	runstmt(parse(input24))
+	runstmt(parse(input25))
+	runstmt(parse(input26))
+
+}
+
+func ex12() {
+	astIf := seq(decl("x", number(1)), seq(ifThenElse(less(variable("x"), number(4)), seq(assign("x", plus(variable("x"), number(1))), printStatement(variable("x"))), seq(decl("x", plus(variable("x"), number(1))), printStatement(variable("x")))), printStatement(variable("x"))))
+	//println(astIf.pretty())
+	runstmt(astIf)
 }
 
 func experiment() {
-
-	input := "{z :=((-1))}"
-	input2 := "{z :=(-1)+2}"
-	input20 := "{z := 3; z := true && (2 < z)}"
-	input19 := "{z := 3; z := ((2 < z) && true)}"
+	input := "{x := 0;y:=0; if x < 4 {if x == 0 {x = x+1; x = x*10; y:= 100; y = y * 2} else {y:=100}}} else {y:=1}}"
 	runstmt(parse(input))
-	runstmt(parse(input2))
-	runstmt(parse(input20))
-	runstmt(parse(input19))
-	//input := "{x := 0; if x < 4 {x = x+1} else {y:=1}}"
+	//ex12()
 }
 
 func main() {
