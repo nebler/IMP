@@ -202,16 +202,32 @@ func parseNumber(s *State) (bool, Num) {
 }
 
 /*
+| exp "+" exp           -- Addition
+| exp "==" exp          -- Equality test
+| exp "<" exp           -- Lesser test
+| exp "*" exp           -- Multiplication
+| exp "||" exp          -- Disjunction
+| exp "&&" exp          -- Conjunction
+*/
+func parseOperation(exp Exp, s *State) (bool, Exp) {
+	switch s.tok {
+	case PLUS:
+		next(s)
+		valid2, secondExp := parseExp(s)
+		return valid2, Plus{exp, secondExp}
+	case MULT:
+		next(s)
+		valid2, secondExp := parseExp(s)
+		return valid2, Mult{exp, secondExp}
+	}
+	return false, errorExp("error")
+}
+
+/*
 exp ::= 0 | 1 | -1 | ...     -- Integers
 
 	| "true" | "false"      -- Booleans
-	| exp "+" exp           -- Addition
-	| exp "*" exp           -- Multiplication
-	| exp "||" exp          -- Disjunction
-	| exp "&&" exp          -- Conjunction
 	| "!" exp               -- Negation
-	| exp "==" exp          -- Equality test
-	| exp "<" exp           -- Lesser test
 	| "(" exp ")"           -- Grouping of expressions
 	| vars                  -- Variables
 */
@@ -235,28 +251,21 @@ func parseExp(s *State) (bool, Exp) {
 		valid = true
 		exp = Num(0 - number)
 	case VARS:
-		println("VARIABLE NAME")
 		varName := parseVarsString(s)
-		println("VARIABLE NAME PARSED:" + varName)
 		valid, exp = parseVars(varName)
 	case OPEN_GRP:
-		println("OPEN STATEMENT")
-		next(s)
-		println("INPUT:" + *s.s)
-		valid, exp = parseExp(s)
-		println("test:" + *s.s)
-		println(s.tok)
+		valid, exp = parseGrp(s)
 		if s.tok != CLOSE_GRP {
-			println("ERROR")
-			return false, errorExp("not closing grouped expression")
+			valid, exp := parseOperation(exp, s)
+			if s.tok != CLOSE_GRP {
+				return false, errorExp("not closing grouped expression")
+			} else {
+				next(s)
+				return valid, exp
+			}
 		} else {
-			println("CLOSING STATEMENT")
-			println(s.tok)
-			println(*s.s)
-			println(exp.pretty())
-			println()
 			next(s)
-			return valid, exp
+			return valid, Grp{exp}
 		}
 	}
 	if s.tok < 10 && s.tok != 0 {
@@ -435,17 +444,13 @@ func parseBlock(s *State) (bool, Stmt) {
 	}
 	next(s)
 	b, stmt := parseStmt(s)
-	println("STATEMENT")
-	println(stmt.pretty())
 	if !b {
 		println("!B")
 		return false, errorStmt("failing to evaulute: " + stmt.pretty())
 	}
 	if s.tok != CLOSE_STMT {
-		println("test")
 		return false, errorStmt("program not ending with }")
 	}
-	println(stmt.pretty())
 	return true, stmt
 }
 

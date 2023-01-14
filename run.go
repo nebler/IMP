@@ -91,28 +91,36 @@ func ex12() {
 	runstmt(astIf)
 }
 
-func main() {
+func working() {
 	//input := "{x := 2; y := 3; z := x + y}"
-	input2 := "{x := 2; y := -3; z := x+((-1)+2)}"
+	input := "{z :=((-1))}"
+	input2 := "{z :=((-1)+2)}"
+	input3 := "{z :=(-1)}"
+	input4 := "{x := -12345678; y := 3}"
+	input5 := "{x := -12345678; x = 1; y := 12; test := -12; zzz := 4; x = 2}"
+	input6 := "{x := -12345678; x = 1}"
+	runstmt(parse(input))
 	runstmt(parse(input2))
-	/*
-		input := "{x := -12345678; y := 3}"
-		runstmt(parse(input))
-		input2 := "{x := -12345678; x = 1}"
-		runstmt(parse(input2))
-		input3 := "{x := -12345678; x = 1; y := 12; test := -12; zzz := 4; x = 2}"
-		runstmt(parse(input3))
+	runstmt(parse(input3))
+	runstmt(parse(input4))
+	runstmt(parse(input5))
+	runstmt(parse(input6))
+}
 
-			input2 := "{x := -12345678; y := 3}"
-			input3 := "{x := 1;if x < 1 {x := 2} else { x := 3};print x}"
-			input4 := "{x := 1; while x < 4 {x:=x+1; print x}; print x}"
-			input5 := "{x := true; y:= x == false}"
-			input6 := "{x := 1; x = 2}"
-			input7 := "{x := 1;if x < 1 {x = 1} else { x = 3};print x}"
-			input8 := "{x := true; y:=!x}"
-			input9 := "{x := true; y:=x && true}"
-			input10 := "{x := true; y:=x || true}"
-			input11 := "{x := 1; y:=x * 10}"
-			runstmt(parse(input))
+func main() {
+	working()
+	/*
+
+		input2 := "{x := -12345678; y := 3}"
+		input3 := "{x := 1;if x < 1 {x := 2} else { x := 3};print x}"
+		input4 := "{x := 1; while x < 4 {x:=x+1; print x}; print x}"
+		input5 := "{x := true; y:= x == false}"
+		input6 := "{x := 1; x = 2}"
+		input7 := "{x := 1;if x < 1 {x = 1} else { x = 3};print x}"
+		input8 := "{x := true; y:=!x}"
+		input9 := "{x := true; y:=x && true}"
+		input10 := "{x := true; y:=x || true}"
+		input11 := "{x := 1; y:=x * 10}"
+		runstmt(parse(input))
 	*/
 }
