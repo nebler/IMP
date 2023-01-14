@@ -342,45 +342,31 @@ func parsePrint(s *State) (bool, Stmt) {
 |  "if" exp block "else" block       -- If-then-else
 */
 func parseIf(s *State) (bool, Stmt) {
-	/*
-		{x = x+1} else {y:=1}
-	*/
 	valid, exp := parseExp(s)
-	println("string:" + *s.s)
 	if !valid {
 		return false, errorStmt("invalid expression for if:" + exp.pretty())
 	}
-	println("next:" + *s.s)
-	println(s.tok)
 	next(s)
-	println("before if:" + *s.s)
-	println(s.tok)
 	validIfStmt, ifStmt := parseStmt(s)
 	if !validIfStmt {
-		println("not vlaid statement")
 		return false, errorStmt("invalid statement inside if block")
 	}
 	if s.tok != CLOSE_STMT {
-
-		println("NO CLOSE")
 		return false, errorStmt("program not ending with }")
 	}
 	next(s)
-	println("!!!else:" + *s.s)
 	if s.tok != ELSE {
 		next(s)
 		if s.tok != ELSE {
-			println("NO else")
 			return false, errorStmt("else needs to follow after if")
 		}
 	}
 	next(s)
-	//open statement
+	if s.tok != OPEN_STMT {
+		return false, errorStmt("else needs to be followed by {")
+	}
 	next(s)
-	println("else:" + *s.s)
 	validElse, elseStmt := parseStmt(s)
-	println("after:" + *s.s)
-	println(elseStmt.pretty())
 	next(s)
 	if s.tok != CLOSE_STMT {
 		return false, errorStmt("program not ending with }")
@@ -389,8 +375,6 @@ func parseIf(s *State) (bool, Stmt) {
 		return false, errorStmt("invalid statement inside if block")
 	}
 	ifThen := IfThenElse{exp, ifStmt, elseStmt}
-	println()
-	println(ifThen.pretty())
 	return true, ifThen
 }
 
@@ -495,7 +479,6 @@ func parseStmt(s *State) (bool, Stmt) {
 		valid, stmt = parsePrint(s)
 	case IF:
 		next(s)
-		println("IF")
 		valid, stmt = parseIf(s)
 	case WHILE:
 		next(s)
