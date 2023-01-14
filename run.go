@@ -20,9 +20,12 @@ func runstmt(stmt Stmt) {
 	t := make(map[string]Type)
 	fmt.Printf("\n ******* ")
 	fmt.Printf("\n %s", stmt.pretty())
+	println("\n________")
 	stmt.eval(s)
 	//TODO: printing schöner
+	println("\nstate:")
 	fmt.Printf("\n %v ", s)
+	println("\ntyping:")
 	fmt.Printf("\n %v ", stmt.check(t))
 }
 
@@ -102,6 +105,12 @@ func working() {
 	input7 := "{x := -10; y := x * 2}"
 	input8 := "{x := -1; y := 4; z := x * y}"
 	input9 := "{x := -1; y := 4; z := ((x + 4) * y)}"
+	input10 := "{z := true }"
+	input11 := "{z := false }"
+	input12 := "{z := false; x := !z }"
+	input13 := "{z := true; x := !z }"
+	input14 := "{z := true; x := z && false }"
+	input15 := "{z := true; x := z || false }"
 	runstmt(parse(input))
 	runstmt(parse(input2))
 	runstmt(parse(input3))
@@ -111,6 +120,18 @@ func working() {
 	runstmt(parse(input7))
 	runstmt(parse(input8))
 	runstmt(parse(input9))
+	runstmt(parse(input10))
+	runstmt(parse(input11))
+	runstmt(parse(input12))
+	runstmt(parse(input13))
+	runstmt(parse(input14))
+	runstmt(parse(input15))
+}
+
+func experiment() {
+	//input := "{x := 2; y := 3; z := x + y}"
+	input2 := "{z := 1; x := z == 1 }"
+	runstmt(parse(input2))
 }
 
 func main() {

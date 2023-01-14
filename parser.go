@@ -73,6 +73,7 @@ const (
 	VARS       = 29
 	ASSIGN     = 30
 	DECL       = 31
+	NEGATION   = 32
 )
 
 func scan(s string) (string, int) {
@@ -84,6 +85,12 @@ func scan(s string) (string, int) {
 			s = s[1:]
 		case s[0] == '0':
 			return s[1:], ZERO
+		case len(s) > 4 && s[0:4] == "true" && !IsLetter(string(s[4])):
+			return s[4:], TRUE
+		case len(s) > 5 && string(s[0:5]) == "while" && !IsLetter(string(s[5])):
+			return s[5:], WHILE
+		case len(s) > 5 && string(s[0:5]) == "false" && !IsLetter(string(s[5])):
+			return s[5:], FALSE
 		case s[0] == '1':
 			return s[1:len(s)], ONE
 		case s[0] == '2':
@@ -128,20 +135,13 @@ func scan(s string) (string, int) {
 		case string(s[0:2]) == ":=":
 			return s[2:], DECL
 		case s[0] == '!':
-			return s[1:len(s)], NEG
+			return s[1:len(s)], NEGATION
 		case string(s[0:2]) == "&&":
 			return s[2:len(s)], AND
 		case string(s[0:2]) == "||":
 			return s[2:len(s)], OR
 		case string(s[0:2]) == "==":
 			return s[2:len(s)], EQU
-		case len(s) > 5 && string(s[0:5]) == "while" && !IsLetter(s[5:5]):
-			return s[5:len(s)], WHILE
-		case len(s) > 4 && s[0:4] == "true" && !IsLetter(s[4:4]):
-			// true = 1
-			return s[4:len(s)], TRUE
-		case len(s) > 5 && string(s[0:4]) == "false" && !IsLetter(s[5:5]):
-			return s[5:], FALSE
 		case IsLower(s[0:0]):
 			// falseVar
 			// x, xy, xyz
@@ -219,6 +219,14 @@ func parseOperation(exp Exp, s *State) (bool, Exp) {
 		next(s)
 		valid2, secondExp := parseExp(s)
 		return valid2, Mult{exp, secondExp}
+	case AND:
+		next(s)
+		valid2, secondExp := parseExp(s)
+		return valid2, And{exp, secondExp}
+	case OR:
+		next(s)
+		valid2, secondExp := parseExp(s)
+		return valid2, Or{exp, secondExp}
 	}
 	return false, errorExp("error")
 }
@@ -241,6 +249,17 @@ func parseExp(s *State) (bool, Exp) {
 	valid := false
 	exp := errorExp("error")
 	switch s.tok {
+	case TRUE:
+		next(s)
+		return true, boolean(true)
+	case FALSE:
+		next(s)
+		return true, boolean(false)
+	case NEGATION:
+		next(s)
+		valid, exp := parseExp(s)
+		exp = Neg{exp}
+		return valid, exp
 	case ZERO:
 		valid = true
 		exp = Num(0)
@@ -281,6 +300,14 @@ func parseExp(s *State) (bool, Exp) {
 		next(s)
 		valid2, secondExp := parseExp(s)
 		return valid && valid2, Mult{exp, secondExp}
+	case AND:
+		next(s)
+		valid2, secondExp := parseExp(s)
+		return valid && valid2, And{exp, secondExp}
+	case OR:
+		next(s)
+		valid2, secondExp := parseExp(s)
+		return valid && valid2, Or{exp, secondExp}
 	}
 	return valid, exp
 }
