@@ -117,6 +117,9 @@ func working() {
 	input24 := "{z := 3; z := true && (2 < z)}"
 	input25 := "{z := 3; z := ((2 < z) && true)}"
 	input26 := "{x := 0;y:=0; if x < 4 {x = x+1; x = x*10; y:= 100; y = y * 2} else {y:=1}}"
+	input27 := "{x := 0;y:=0; if x < 4 {if x == 0 {x = x+1; x = x*10; y:= 100; y = y * 2} else {y:=100}}} else {y:=1}}"
+	input28 := "{x := 0;y:=0; if 4 < x {x = x+1; x = x*10; y:= 100; y = y * 2} else {y=1}}"
+	runstmt(parse(input26))
 	runstmt(parse(input))
 	runstmt(parse(input2))
 	runstmt(parse(input3))
@@ -143,6 +146,8 @@ func working() {
 	runstmt(parse(input24))
 	runstmt(parse(input25))
 	runstmt(parse(input26))
+	runstmt(parse(input27))
+	runstmt(parse(input28))
 
 }
 
@@ -150,11 +155,11 @@ func ex12() {
 	astIf := seq(decl("x", number(1)), seq(ifThenElse(less(variable("x"), number(4)), seq(assign("x", plus(variable("x"), number(1))), printStatement(variable("x"))), seq(decl("x", plus(variable("x"), number(1))), printStatement(variable("x")))), printStatement(variable("x"))))
 	//println(astIf.pretty())
 	runstmt(astIf)
+
 }
 
 func experiment() {
-	input := "{x := 0;y:=0; if x < 4 {if x == 0 {x = x+1; x = x*10; y:= 100; y = y * 2} else {y:=100}}} else {y:=1}}"
-	runstmt(parse(input))
+
 	//ex12()
 }
 

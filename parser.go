@@ -350,25 +350,32 @@ func parseIf(s *State) (bool, Stmt) {
 	if !valid {
 		return false, errorStmt("invalid expression for if:" + exp.pretty())
 	}
-	next(s)
+	println("next:" + *s.s)
+	println(s.tok)
 	next(s)
 	println("before if:" + *s.s)
+	println(s.tok)
 	validIfStmt, ifStmt := parseStmt(s)
 	if !validIfStmt {
 		println("not vlaid statement")
 		return false, errorStmt("invalid statement inside if block")
 	}
 	if s.tok != CLOSE_STMT {
+
 		println("NO CLOSE")
 		return false, errorStmt("program not ending with }")
 	}
 	next(s)
-	println(*s.s)
+	println("!!!else:" + *s.s)
 	if s.tok != ELSE {
-		println("NO else")
-		return false, errorStmt("else needs to follow after if")
+		next(s)
+		if s.tok != ELSE {
+			println("NO else")
+			return false, errorStmt("else needs to follow after if")
+		}
 	}
 	next(s)
+	//open statement
 	next(s)
 	println("else:" + *s.s)
 	validElse, elseStmt := parseStmt(s)
