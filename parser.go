@@ -215,6 +215,12 @@ exp ::= 0 | 1 | -1 | ...     -- Integers
 	| "(" exp ")"           -- Grouping of expressions
 	| vars                  -- Variables
 */
+
+func parseGrp(s *State) (bool, Exp) {
+	next(s)
+	return parseExp(s)
+}
+
 func parseExp(s *State) (bool, Exp) {
 	valid := false
 	exp := errorExp("error")
@@ -228,24 +234,45 @@ func parseExp(s *State) (bool, Exp) {
 		*s.s = (*s.s)[(index):]
 		valid = true
 		exp = Num(0 - number)
+	case VARS:
+		println("VARIABLE NAME")
+		varName := parseVarsString(s)
+		println("VARIABLE NAME PARSED:" + varName)
+		valid, exp = parseVars(varName)
 	case OPEN_GRP:
-
+		println("OPEN STATEMENT")
+		next(s)
+		println("INPUT:" + *s.s)
+		valid, exp = parseExp(s)
+		println("test:" + *s.s)
+		println(s.tok)
+		if s.tok != CLOSE_GRP {
+			println("ERROR")
+			return false, errorExp("not closing grouped expression")
+		} else {
+			println("CLOSING STATEMENT")
+			println(s.tok)
+			println(*s.s)
+			println(exp.pretty())
+			println()
+			next(s)
+			return valid, exp
+		}
 	}
 	if s.tok < 10 && s.tok != 0 {
 		valid, exp = parseNumber(s)
 	}
 	next(s)
-	println(*s.s)
 	switch s.tok {
 	case PLUS:
-		println("PLUS")
-		println(*s.s)
 		next(s)
 		valid2, secondExp := parseExp(s)
-		println(*s.s)
 		return valid && valid2, Plus{exp, secondExp}
+	case MULT:
+		next(s)
+		valid2, secondExp := parseExp(s)
+		return valid && valid2, Mult{exp, secondExp}
 	}
-	println(*s.s)
 	return valid, exp
 }
 
@@ -330,17 +357,26 @@ STATEMENTS
 	|  vars "=" exp                      -- Variable assignment
 */
 
-func parseDeclOrAssign(s *State) (bool, Stmt) {
+func parseVarsString(s *State) string {
 	varName := ""
 	index := 0
 	for i, c := range *s.s {
-		if c == ' ' {
+		if c == ' ' && !unicode.IsLetter(c) {
 			index = i
 			break
 		}
-		varName = varName + string(c)
+	}
+	if index == 0 {
+		varName = string((*s.s)[0])
+	} else {
+		varName = (*s.s)[0:index]
 	}
 	*s.s = (*s.s)[(index + 1):]
+	return varName
+}
+
+func parseDeclOrAssign(s *State) (bool, Stmt) {
+	varName := parseVarsString(s)
 	next(s)
 	switch s.tok {
 	case ASSIGN:
@@ -399,12 +435,17 @@ func parseBlock(s *State) (bool, Stmt) {
 	}
 	next(s)
 	b, stmt := parseStmt(s)
+	println("STATEMENT")
+	println(stmt.pretty())
 	if !b {
+		println("!B")
 		return false, errorStmt("failing to evaulute: " + stmt.pretty())
 	}
 	if s.tok != CLOSE_STMT {
+		println("test")
 		return false, errorStmt("program not ending with }")
 	}
+	println(stmt.pretty())
 	return true, stmt
 }
 

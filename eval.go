@@ -176,7 +176,7 @@ func (e Mult) eval(s ValState) Val {
 
 func findScopeOfVariable(s ValState, varName string) string {
 	scope := "global"
-	for k, _ := range s.vals {
+	for k := range s.vals {
 		if k[0] == varName {
 			if strings.Count(scope, "-") < strings.Count(k[1], "-") {
 				scope = k[1]
@@ -186,7 +186,15 @@ func findScopeOfVariable(s ValState, varName string) string {
 	return scope
 }
 
+func printValState(s ValState, prefix string) {
+	for k, v := range s.vals {
+		println(prefix + " " + k[0] + k[1])
+		println(v.valI)
+	}
+}
+
 func (varName Var) eval(s ValState) Val {
+	//printValState(s, "")
 	value, ok := s.vals[ValName{varName.pretty(), s.name}]
 	if ok {
 		if value.flag == ValueInt {
@@ -204,6 +212,7 @@ func (varName Var) eval(s ValState) Val {
 				return mkBool(valueScope.valB)
 			}
 		} else {
+			println("UNDEFINED")
 			return mkUndefined()
 		}
 	}

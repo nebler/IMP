@@ -92,8 +92,9 @@ func ex12() {
 }
 
 func main() {
-	input := "{x := -12345678; y := 3+1}"
-	runstmt(parse(input))
+	//input := "{x := 2; y := 3; z := x + y}"
+	input2 := "{x := 2; y := -3; z := x+((-1)+2)}"
+	runstmt(parse(input2))
 	/*
 		input := "{x := -12345678; y := 3}"
 		runstmt(parse(input))
