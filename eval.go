@@ -12,28 +12,7 @@ func (stmt Seq) eval(s ValState) {
 }
 
 func (ite IfThenElse) eval(s ValState) {
-	// x => 1
-	//cond x < 1
-
-	/*
-		x := 1;
-		if x < 1 {
-		x := 2
-		} else {
-		x := 3
-		};
-		print x
-		ausgabe 1
-
-		x := 1;
-		if x < 1 {
-		x := 2
-		} else {
-		x = 3
-		};
-		print x
-		ausgabe 3
-	*/
+	// if block creates a new scope
 	v := ite.cond.eval(s)
 	if v.flag == ValueBool {
 		s2 := makeNewScope(s, "-ifThenElse")
@@ -42,29 +21,20 @@ func (ite IfThenElse) eval(s ValState) {
 			ite.thenStmt.eval(s2)
 		case !v.valB:
 			ite.elseStmt.eval(s2)
-			// x => 3
 		}
-		// TODO: if you declare a new variable it will leak into the global scope
-		// IDEA: attach name to  inside scope so we know when the variable has been declared or not: type ValName [2]string has name of variable and scope it is defined in
+		//attach name to  inside scope so we know when the variable has been declared or not: type ValName [2]string has name of variable and scope it is defined in
 		update(s, s2)
 	} else {
 		fmt.Printf("if-then-else eval fail")
 	}
 }
 
-// Maps are represented via points.
-// Hence, maps are passed by "reference" and the update is visible for the caller as well.
-// x := 1 + 1
-// x := 2
-// [x, scopeName] => 2
 func (decl Decl) eval(s ValState) {
 	v := decl.rhs.eval(s)
 	x := (string)(decl.lhs)
 	s.vals[ValName{x, s.name}] = v
 }
 
-// Maps are represented via points.
-// Hence, maps are passed by "reference" and the update is visible for the caller as well.
 func (assign Assign) eval(s ValState) {
 	v := assign.rhs.eval(s)
 	val := assign.variable.eval(s)
@@ -85,27 +55,7 @@ func (assign Assign) eval(s ValState) {
 }
 
 /*
-// s = global
-x := 1;
-// s {[x, global]: 1}
-y := 2
-// s {[x, global]: 1, [y, global]: 2}
-//createNewScopeFrom()
-// s2: gobal-else {[x, global]: 1, [y, global]: 2}
-if x < 1 {
-x := 2
-} else {
-// s2: gobal-else {[x, global]: 1, [y, global]: 2}
-x := 3
-// s2: gobal-else {[x, global-else]: 3, [y, global]: 2}
-x = 5
-x = 6
-y = 1
-// s2: gobal-else {[x, global-else]: 3, [y, global]: 1}
-};
-
-print x
-print y
+will overwrite value if scope name is still the same
 */
 func update(s1 ValState, s2 ValState) {
 	for k := range s2.vals {
@@ -117,10 +67,7 @@ func update(s1 ValState, s2 ValState) {
 }
 
 /*
-global: if-else-then
-global-if-else-then
-global-if-else-then-if-else-then
-global-if-else-then-if-else-then-while-while
+copy value from one scope above into the current one
 */
 func makeNewScope(s ValState, prefix string) ValState {
 	m := make(map[ValName]Val)
@@ -174,6 +121,9 @@ func (e Mult) eval(s ValState) Val {
 	return mkUndefined()
 }
 
+/*
+checks for variable name and will always take the most nested scope for it
+*/
 func findScopeOfVariable(s ValState, varName string) string {
 	scope := "global"
 	for k := range s.vals {
