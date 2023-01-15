@@ -96,33 +96,33 @@ func scan(s string) (string, int) {
 		case len(s) > 4 && string(s[0:4]) == "else" && !IsLetter(string(s[4])):
 			return s[4:], ELSE
 		case s[0] == '1':
-			return s[1:len(s)], ONE
+			return s[1:], ONE
 		case s[0] == '2':
-			return s[1:len(s)], TWO
+			return s[1:], TWO
 		case s[0] == '3':
-			return s[1:len(s)], THREE
+			return s[1:], THREE
 		case s[0] == '4':
-			return s[1:len(s)], FOUR
+			return s[1:], FOUR
 		case s[0] == '5':
-			return s[1:len(s)], FIVE
+			return s[1:], FIVE
 		case s[0] == '6':
-			return s[1:len(s)], SIX
+			return s[1:], SIX
 		case s[0] == '7':
-			return s[1:len(s)], SEVEN
+			return s[1:], SEVEN
 		case s[0] == '8':
-			return s[1:len(s)], EIGHT
+			return s[1:], EIGHT
 		case s[0] == '9':
-			return s[1:len(s)], NINE
+			return s[1:], NINE
 		case s[0] == '+':
-			return s[1:len(s)], PLUS
+			return s[1:], PLUS
 		case s[0] == '-':
-			return s[1:len(s)], NEG
+			return s[1:], NEG
 		case s[0] == '*':
-			return s[1:len(s)], MULT
+			return s[1:], MULT
 		case s[0] == '(':
-			return s[1:len(s)], OPEN_GRP
+			return s[1:], OPEN_GRP
 		case s[0] == ')':
-			return s[1:len(s)], CLOSE_GRP
+			return s[1:], CLOSE_GRP
 		case s[0] == '{':
 			return s[1:], OPEN_STMT
 		case s[0] == '}':
@@ -133,19 +133,19 @@ func scan(s string) (string, int) {
 		case s[0] == ';':
 			return s[1:], SEQ
 		case string(s[0:2]) == "==":
-			return s[2:len(s)], EQU
+			return s[2:], EQU
 		case s[0] == '=':
 			return s[1:], ASSIGN
 		case s[0] == '<':
-			return s[1:len(s)], LESSER
+			return s[1:], LESSER
 		case string(s[0:2]) == ":=":
 			return s[2:], DECL
 		case s[0] == '!':
-			return s[1:len(s)], NEGATION
+			return s[1:], NEGATION
 		case string(s[0:2]) == "&&":
-			return s[2:len(s)], AND
+			return s[2:], AND
 		case string(s[0:2]) == "||":
-			return s[2:len(s)], OR
+			return s[2:], OR
 		case IsLower(s[0:0]):
 			// falseVar
 			// x, xy, xyz
@@ -185,6 +185,9 @@ func next(s *State) {
 	s.tok = tok
 }
 
+/*
+check string for numbers, returns number as string and integer of the position
+*/
 func parseTillNotAnNumberAnymore(s string) (string, int) {
 	value := ""
 	for i, c := range s {
@@ -197,6 +200,10 @@ func parseTillNotAnNumberAnymore(s string) (string, int) {
 	return "", 0
 }
 
+/*
+	parse number
+*/
+
 func parseNumber(s *State) (bool, Num) {
 	numberString, index := parseTillNotAnNumberAnymore(*s.s)
 	number, _ := strconv.Atoi(strconv.Itoa(s.tok) + numberString)
@@ -205,6 +212,7 @@ func parseNumber(s *State) (bool, Num) {
 }
 
 /*
+parse Operation inside a group expression
 | exp "+" exp           -- Addition
 | exp "==" exp          -- Equality test
 | exp "<" exp           -- Lesser test
@@ -243,14 +251,8 @@ func parseOperation(exp Exp, s *State) (bool, Exp) {
 }
 
 /*
-exp ::= 0 | 1 | -1 | ...     -- Integers
-
-	| "true" | "false"      -- Booleans
-	| "!" exp               -- Negation
-	| "(" exp ")"           -- Grouping of expressions
-	| vars                  -- Variables
+skipping parsing whatever is inside the group
 */
-
 func parseGrp(s *State) (bool, Exp) {
 	next(s)
 	return parseExp(s)
@@ -294,9 +296,11 @@ func parseExp(s *State) (bool, Exp) {
 			exp = Grp{exp}
 		}
 	}
+	// check if token is a number and not zero
 	if s.tok < 10 && s.tok != 0 {
 		valid, exp = parseNumber(s)
 	}
+	// check if statement is over if it isnt then there will be operation (+, *, ==, <, ||, &&)
 	if s.tok != CLOSE_STMT {
 		next(s)
 	} else {
@@ -393,20 +397,14 @@ func parseWhile(s *State) (bool, Stmt) {
 	if !validWhileStmt {
 		return false, errorStmt("invalid statement inside while block")
 	}
-	println("Before" + *s.s)
-	println("after next:" + *s.s)
 	if s.tok != CLOSE_STMT {
-		println("NEXT")
 		return false, errorStmt("program not ending with }")
 	}
-	println("END" + *s.s)
 	next(s)
 	return true, While{exp, whileStmt}
 }
 
 func parseVars(varName string) (bool, Exp) {
-	// parsing if only letters and numbers
-	//myVar! => error
 	return true, Var(varName)
 }
 
@@ -456,6 +454,10 @@ func parseVarsString(s *State) string {
 	return varName
 }
 
+/*
+|  vars ":=" exp                     -- Variable declaration
+|  vars "=" exp                      -- Variable assignment
+*/
 func parseDeclOrAssign(s *State) (bool, Stmt) {
 	varName := parseVarsString(s)
 	next(s)
