@@ -90,78 +90,76 @@ func ex11() {
 }
 
 func working() {
-	//input := "{x := 2; y := 3; z := x + y}"
-	input := "{z :=((-1))}"
-	input2 := "{z :=2+(-1)}"
+	testBrackets := "{z :=((-1))}"
+	testAddition := "{z :=2+(-1)}"
 	input3 := "{z :=(-1)}"
-	input4 := "{x := -12345678; y := 3}"
-	input5 := "{x := -12345678; x = 1; y := 12; test := -12; zzz := 4; x = 2}"
-	input6 := "{x := -12345678; x = 1}"
-	input7 := "{x := -10; y := x * 2}"
-	input8 := "{x := -1; y := 4; z := x * y}"
-	input9 := "{x := -1; y := 4; z := y*(x + 4)}"
-	input10 := "{z := true }"
-	input11 := "{z := false }"
-	input12 := "{z := false; x := !z }"
-	input13 := "{z := true; x := !z }"
-	input14 := "{z := true; x := z && false }"
-	input15 := "{z := true; x := z || false }"
-	input16 := "{z := 1; x := z == 1 }"
-	input17 := "{z := 1; x := z == 2 }"
-	input18 := "{z := true; x := true && z }"
-	input19 := "{z := true; x := true == z }"
-	input20 := "{z := true; x := z == true }"
+	testNegativeNumbers := "{x := -12345678; y := 3}"
+	testMultipleOverwrite := "{x := -12345678; x = 1; y := 12; test := -12; zzz := 4; x = 2}"
+	testOverwrite := "{x := -12345678; x = 1}"
+	testMultiplication := "{x := -10; y := x * 2}"
+	testMultiplication2 := "{x := -1; y := 4; z := x * y}"
+	testMultiplicationWithBrackets := "{x := -1; y := 4; z := y*(x + 4)}"
+	testBooleanTrue := "{z := true }"
+	testBooleanFalse := "{z := false }"
+	testNotFalse := "{z := false; x := !z }"
+	testNotTrue := "{z := true; x := !z }"
+	testAnd := "{z := true; x := z && false }"
+	testOr := "{z := true; x := z || false }"
+	testCompareTrue := "{z := 1; x := z == 1 }"
+	testCompareFalse := "{z := 1; x := z == 2 }"
+	testTrueAndTrue := "{z := true; x := true && z }"
+	testCompareTrueIsZ := "{z := true; x := true == z }"
+	testCompareZIsTrue := "{z := true; x := z == true }"
 	input21 := "{x :=0; x = x+1}"
 	input22 := "{z :=((-1))}"
 	input23 := "{z :=(-1)+2}"
-	input24 := "{z := 3; z := true && (2 < z)}"
-	input25 := "{z := 3; z := ((2 < z) && true)}"
-	input26 := "{x := 0;y:=0; if x < 4 {x = x+1; x = x*10; y:= 100; y = y * 2} else {y:=1}}"
-	input27 := "{x := 0;y:=0; if x < 4 {if x == 0 {x = x+1; x = x*10; y:= 100; y = y * 2} else {y:=100}}} else {y:=1}}"
+	testAndLesser := "{z := 3; z := true && (2 < z)}"
+	testLesserAnd := "{z := 3; z := ((2 < z) && true)}"
+	testIfElse := "{x := 0;y:=0; if x < 4 {x = x+1; x = x*10; y:= 100; y = y * 2} else {y:=1}}"
+	testIfElseElse := "{x := 0;y:=0; if x < 4 {if x == 0 {x = x+1; x = x*10; y:= 100; y = y * 2} else {y:=100}}} else {y:=1}}"
 	input28 := "{x := 0;y:=0; if 4 < x {x = x+1; x = x*10; y:= 100; y = y * 2} else {y=1}}"
-	input29 := "{x :=15; y:=100; print (x+y)}"
-	input30 := "{x :=0; while x<5{x = x+1}; print x}"
-	input31 := "{x :=0; while x<5{x = x+1; print x}}"
-	input32 := "{x :=0; if x<5 {x = x+2; print x} else {x = 1}}"
-	input33 := "{x :=0; if x<5 {x = x+2} else {x = 1}; print x}"
-	runstmt(parse(input))
-	runstmt(parse(input2))
+	testPrintWithBrackets := "{x :=15; y:=100; print (x+y)}"
+	testPrintWithBrackets2 := "{x :=0; while x<5{x = x+1}; print x}"
+	testPrintWithBrackets3 := "{x :=0; while x<5{x = x+1; print x}}"
+	testMultipleFunctions := "{x :=0; if x<5 {x = x+2; print x} else {x = 1}}"
+	testMultipleFunctions2 := "{x :=0; if x<5 {x = x+2} else {x = 1}; print x}"
+	runstmt(parse(testBrackets))
+	runstmt(parse(testAddition))
 	runstmt(parse(input3))
-	runstmt(parse(input4))
-	runstmt(parse(input5))
-	runstmt(parse(input6))
-	runstmt(parse(input7))
-	runstmt(parse(input8))
-	runstmt(parse(input9))
-	runstmt(parse(input10))
-	runstmt(parse(input11))
-	runstmt(parse(input12))
-	runstmt(parse(input13))
-	runstmt(parse(input14))
-	runstmt(parse(input15))
-	runstmt(parse(input16))
-	runstmt(parse(input17))
-	runstmt(parse(input18))
-	runstmt(parse(input19))
-	runstmt(parse(input20))
+	runstmt(parse(testNegativeNumbers))
+	runstmt(parse(testOverwrite))
+	runstmt(parse(testMultipleOverwrite))
+	runstmt(parse(testMultiplication))
+	runstmt(parse(testMultiplication2))
+	runstmt(parse(testMultiplicationWithBrackets))
+	runstmt(parse(testBooleanTrue))
+	runstmt(parse(testBooleanFalse))
+	runstmt(parse(testNotFalse))
+	runstmt(parse(testNotTrue))
+	runstmt(parse(testAnd))
+	runstmt(parse(testOr))
+	runstmt(parse(testCompareTrue))
+	runstmt(parse(testCompareFalse))
+	runstmt(parse(testTrueAndTrue))
+	runstmt(parse(testCompareTrueIsZ))
+	runstmt(parse(testCompareZIsTrue))
 	runstmt(parse(input21))
 	runstmt(parse(input22))
 	runstmt(parse(input23))
-	runstmt(parse(input24))
-	runstmt(parse(input25))
-	runstmt(parse(input26))
-	runstmt(parse(input27))
+	runstmt(parse(testAndLesser))
+	runstmt(parse(testLesserAnd))
+	runstmt(parse(testIfElse))
+	runstmt(parse(testIfElseElse))
 	runstmt(parse(input28))
-	runstmt(parse(input29))
-	runstmt(parse(input30))
-	runstmt(parse(input31))
-	runstmt(parse(input32))
-	runstmt(parse(input33))
+	runstmt(parse(testPrintWithBrackets))
+	runstmt(parse(testPrintWithBrackets2))
+	runstmt(parse(testPrintWithBrackets3))
+	runstmt(parse(testMultipleFunctions))
+	runstmt(parse(testMultipleFunctions2))
 }
 
 func ex12() {
 	astIf := seq(decl("x", number(1)), seq(ifThenElse(less(variable("x"), number(4)), seq(assign("x", plus(variable("x"), number(1))), printStatement(variable("x"))), seq(decl("x", plus(variable("x"), number(1))), printStatement(variable("x")))), printStatement(variable("x"))))
-	//println(astIf.pretty())
 	runstmt(astIf)
 
 }
