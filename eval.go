@@ -177,18 +177,26 @@ func (e Plus) eval(s ValState) Val {
 
 func (e And) eval(s ValState) Val {
 	b1 := e[0].eval(s)
-	b2 := e[1].eval(s)
-	if b1.flag == ValueBool && b2.flag == ValueBool {
-		return mkBool(b1.valB && b2.valB)
+	if b1.flag == ValueBool && !b1.valB {
+		return mkBool(false)
+	} else {
+		b2 := e[1].eval(s)
+		if b1.flag == ValueBool && b2.flag == ValueBool {
+			return mkBool(b1.valB && b2.valB)
+		}
 	}
 	return mkUndefined()
 }
 
 func (e Or) eval(s ValState) Val {
 	b1 := e[0].eval(s)
-	b2 := e[1].eval(s)
-	if b1.flag == ValueBool && b2.flag == ValueBool {
-		return mkBool(b1.valB || b2.valB)
+	if b1.flag == ValueBool && b1.valB {
+		return mkBool(true)
+	} else {
+		b2 := e[1].eval(s)
+		if b1.flag == ValueBool && b2.flag == ValueBool {
+			return mkBool(b1.valB || b2.valB)
+		}
 	}
 	return mkUndefined()
 }
