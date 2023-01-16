@@ -144,7 +144,6 @@ func printValState(s ValState, prefix string) {
 }
 
 func (varName Var) eval(s ValState) Val {
-	//printValState(s, "")
 	value, ok := s.vals[ValName{varName.pretty(), s.name}]
 	if ok {
 		if value.flag == ValueInt {
